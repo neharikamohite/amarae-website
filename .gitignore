@@ -1,0 +1,16 @@
+# Build outputs and local runtime data
+target/
+data/
+*.log
+*.err
+
+# Local Maven distribution
+apache-maven-3.9.9/
+apache-maven-3.9.9-bin.zip
+
+# IDE and operating system files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

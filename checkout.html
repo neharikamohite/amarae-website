@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amarae Beauty - Secure Checkout</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="cursor-aura"></div>
+
+    <header>
+      <div class="logo">AMARAE</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="collections.html">Shop</a></li>
+        <li><a href="findFragrance.html">Find Match</a></li>
+        <li><a href="chemistry.html">Notes</a></li>
+      </ul>
+    </header>
+
+    <main class="page-wrap">
+      <h1 class="page-title">CHECKOUT</h1>
+      <p class="page-sub">Complete Your Amarae Payment</p>
+
+      <section class="cart-panel">
+        <div>
+          <h2>Payment Gateway</h2>
+          <p id="checkoutStatus">Preparing secure checkout...</p>
+        </div>
+        <button type="button" class="reveal-btn" id="payNowBtn">PAY NOW</button>
+        <p class="checkout-note" id="checkoutNote"></p>
+      </section>
+    </main>
+
+    <footer>&copy; 2026 Amarae Beauty.</footer>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="javas.js"></script>
+    <script>
+      window.addEventListener("load", async () => {
+        const params = new URLSearchParams(window.location.search);
+        const razorpayOrderId = params.get("orderId");
+        const status = document.getElementById("checkoutStatus");
+        const note = document.getElementById("checkoutNote");
+        const button = document.getElementById("payNowBtn");
+
+        if (!razorpayOrderId) {
+          status.textContent = "No payment order was found.";
+          button.disabled = true;
+          return;
+        }
+
+        let config;
+        try {
+          const response = await fetch("/api/payments/config");
+          config = await response.json();
+        } catch (error) {
+          status.textContent = "Payment config could not be loaded.";
+          button.disabled = true;
+          return;
+        }
+
+        status.textContent = `Razorpay order ${razorpayOrderId} is ready.`;
+
+        button.addEventListener("click", () => {
+          if (!window.Razorpay || !config.keyId) {
+            note.textContent = "Razorpay is not available or key id is missing.";
+            return;
+          }
+
+          const checkout = new Razorpay({
+            key: config.keyId,
+            order_id: razorpayOrderId,
+            name: "Amarae Beauty",
+            description: "Amarae perfume order payment",
+            handler: async (response) => {
+              const verify = await fetch("/api/payments/razorpay/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                }),
+              });
+
+              if (verify.ok) {
+                note.textContent = "Payment verified. Your order is confirmed.";
+              } else {
+                note.textContent = "Payment verification failed. Please contact support.";
+              }
+            },
+            theme: { color: "#1a1a1a" },
+          });
+          checkout.open();
+        });
+      });
+    </script>
+  </body>
+</html>

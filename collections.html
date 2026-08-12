@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amarae Beauty - Shop Perfumes</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="cursor-aura"></div>
+
+    <header class="site-header">
+      <a class="logo" href="index.html" aria-label="Amarae home">AMARAE</a>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="collections.html" class="active-page">Shop</a></li>
+          <li><a href="findFragrance.html">Find Match</a></li>
+          <li><a href="chemistry.html">Notes</a></li>
+          <li><a href="#cart">Cart <span class="cart-count">0</span></a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="shop-page">
+      <section class="shop-hero">
+        <div>
+          <p class="eyebrow">Amarae perfume launch</p>
+          <h1>10 fragrances, one easy store.</h1>
+          <p>
+            Browse by mood, compare notes quickly, add to cart, and place a
+            real database-backed checkout request.
+          </p>
+        </div>
+        <aside class="delivery-card" aria-label="Delivery and payment details">
+          <span id="realtimeStatus">Live store connecting...</span>
+          <strong>Delivery in 2-4 days</strong>
+          <small>Demo payments now. Razorpay ready when keys are added.</small>
+        </aside>
+      </section>
+
+      <section class="shop-controls" aria-label="Search and filters">
+        <label class="search-box">
+          <span>Search</span>
+          <input id="productSearch" type="search" placeholder="Try rose, oud, vanilla, fresh..." />
+        </label>
+        <div class="shop-toolbar">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="fresh">Fresh</button>
+          <button class="filter-chip" data-filter="floral">Floral</button>
+          <button class="filter-chip" data-filter="warm">Warm</button>
+          <button class="filter-chip" data-filter="luxury">Luxury</button>
+          <button class="filter-chip" data-filter="gourmand">Sweet</button>
+        </div>
+      </section>
+
+      <section class="collection-grid product-grid" aria-live="polite" aria-label="Amarae products"></section>
+
+      <section class="cart-panel" id="cart" aria-label="Shopping cart">
+        <div class="cart-panel-head">
+          <div>
+            <p class="eyebrow">Checkout</p>
+            <h2>Your Cart</h2>
+            <p>Quantities update instantly and are stored against this browser session.</p>
+          </div>
+          <a class="secondary-btn compact" href="findFragrance.html">Need help choosing?</a>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-summary">
+          <span>Total</span>
+          <strong id="cartTotal">₹0</strong>
+        </div>
+        <form class="checkout-form">
+          <input id="customerName" type="text" placeholder="Full name" aria-label="Full name" />
+          <input id="customerEmail" type="email" placeholder="Email address" aria-label="Email address" />
+          <input id="deliveryCity" type="text" placeholder="Delivery city" aria-label="Delivery city" />
+          <button type="button" class="primary-btn checkout-btn">Request checkout</button>
+        </form>
+        <p class="checkout-note" id="checkoutNote"></p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>&copy; 2026 Amarae Beauty</span>
+      <span>Secure checkout, live cart, database products.</span>
+    </footer>
+
+    <script src="javas.js"></script>
+  </body>
+</html>
