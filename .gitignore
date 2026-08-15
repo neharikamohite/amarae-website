@@ -3,6 +3,8 @@ target/
 data/
 *.log
 *.err
+.env
+.env.*
 
 # Local Maven distribution
 apache-maven-3.9.9/
