@@ -5,6 +5,39 @@ Move the Spring Boot backend from local-only (`localhost:8080`, local H2 databas
 
 ---
 
+## ⚠️ IMPORTANT: Frontend Sync Workflow
+
+**Every time you edit your frontend files** (HTML, CSS, JavaScript, assets), you MUST sync them into the Spring Boot static resources folder before committing and deploying. Spring Boot serves files from `src/main/resources/static/`, not from the project root.
+
+### How to Sync:
+
+**Option A (Windows PowerShell):**
+```powershell
+.\sync-static-files.ps1
+```
+
+**Option B (Git Bash / Linux / Mac):**
+```bash
+./sync-static-files.sh
+```
+
+**Option C (Manual):**
+```bash
+git add src/main/resources/static/
+```
+
+### Workflow (repeat after every frontend change):
+1. Edit your HTML/CSS/JS/assets in the project root
+2. Run the sync script above
+3. `git add src/main/resources/static/`
+4. `git commit -m "Update static files: [describe changes]"`
+5. `git push`
+6. Deploy on Render
+
+Forgetting this step will result in your live site showing outdated designs. The sync scripts automate this to prevent confusion.
+
+---
+
 ## Part 1 — Database migration (do this first)
 
 The current database (`aether-beauty.mv.db`) is a local H2 file — this only works on this machine and will NOT work once deployed.
