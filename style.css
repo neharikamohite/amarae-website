@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap");
+
 :root {
   --ink: #181715;
   --muted: #6d665d;
@@ -26,7 +28,7 @@ body {
     linear-gradient(135deg, rgba(233, 240, 236, 0.86), rgba(248, 244, 237, 0.92) 42%, rgba(234, 214, 220, 0.72)),
     var(--paper);
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "DM Sans", Arial, Helvetica, sans-serif;
   overflow-x: hidden;
 }
 
@@ -76,6 +78,90 @@ header {
   font-weight: 800;
   letter-spacing: 5px;
 }
+
+.logo img {
+  display: block;
+  width: auto;
+  height: 30px;
+}
+
+.logo {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+}
+
+.logo::after {
+  content: "™";
+  position: absolute;
+  top: -5px;
+  right: -11px;
+  color: var(--ink);
+  font-family: "DM Sans", Arial, sans-serif;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow, .nav-links a, .primary-btn, .secondary-btn, .reveal-btn, .add-cart {
+  font-family: "DM Sans", Arial, sans-serif;
+}
+
+.launch-banner {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 7%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.launch-banner strong { color: #f4d77b; text-transform: uppercase; letter-spacing: 1px; }
+
+.trust-section,
+.testimonials,
+.about-section { padding: 70px 7%; }
+
+.trust-grid,
+.testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+
+.trust-grid article,
+.testimonial-grid blockquote,
+.legal-card,
+.cart-offer {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: 0 10px 30px rgba(24, 23, 21, 0.08);
+}
+
+.trust-grid h3 { margin-bottom: 10px; }
+.trust-grid p, .testimonial-grid blockquote, .about-section > p, .legal-card p { color: var(--muted); line-height: 1.7; }
+.testimonial-grid { grid-template-columns: repeat(2, 1fr); }
+.testimonial-grid cite { display: block; margin-top: 16px; color: var(--clay); font-style: normal; font-weight: 700; }
+.about-section > p { max-width: 720px; margin: 18px 0 24px; font-size: 1.05rem; }
+.cart-offer { margin: 20px 0; color: var(--clay); font-weight: 700; }
+.mini-choice { display: block; margin: 0 0 8px; font-size: 0.85rem; font-weight: 700; }
+.cart-panel select { width: 100%; min-height: 46px; padding: 0 12px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.product-details { display: grid; gap: 4px; margin: 12px 0; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+.legal-page { max-width: 980px; margin: 0 auto; }
+.legal-card { margin-top: 26px; }
+.legal-card h2 { margin: 24px 0 10px; }
+.legal-card h2:first-child { margin-top: 0; }
+.legal-card p + p { margin-top: 16px; }
+.site-footer-expanded { align-items: flex-start; flex-wrap: wrap; }
+.site-footer-expanded > div { display: grid; gap: 7px; max-width: 360px; }
+.site-footer-expanded small { width: 100%; }
+.footer-links { display: flex !important; flex-wrap: wrap; gap: 12px; }
 
 .nav-links {
   display: flex;
@@ -1014,6 +1100,7 @@ footer {
   .checkout-form {
     grid-template-columns: 1fr;
   }
+  .trust-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 680px) {
@@ -1078,6 +1165,9 @@ footer {
   footer {
     flex-direction: column;
   }
+
+  .launch-banner,
+  .testimonial-grid { grid-template-columns: 1fr; flex-direction: column; }
 
   .cart-row {
     grid-template-columns: 52px 1fr;
