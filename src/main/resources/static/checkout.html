@@ -3,14 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Amarae Beauty - Secure Checkout</title>
+    <title>Secure Checkout | AMARAÈ Formulations</title>
+    <meta name="description" content="Complete your AMARAÈ fragrance order securely." />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="cursor-aura"></div>
 
     <header>
-      <div class="logo">AMARAE</div>
+      <a class="logo" href="index.html" aria-label="AMARAÈ home"><img src="assets/Amaraè logo FL.png" alt="AMARAÈ" /></a>
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
         <li><a href="collections.html">Shop</a></li>
@@ -21,7 +22,7 @@
 
     <main class="page-wrap">
       <h1 class="page-title">CHECKOUT</h1>
-      <p class="page-sub">Complete Your Amarae Payment</p>
+      <p class="page-sub">Complete your AMARAÈ payment securely</p>
 
       <section class="cart-panel">
         <div>
@@ -29,11 +30,12 @@
           <p id="checkoutStatus">Preparing secure checkout...</p>
         </div>
         <button type="button" class="reveal-btn" id="payNowBtn">PAY NOW</button>
+        <a class="secondary-btn compact" href="collections.html#cart">Return to cart</a>
         <p class="checkout-note" id="checkoutNote"></p>
       </section>
     </main>
 
-    <footer>&copy; 2026 Amarae Beauty.</footer>
+    <footer class="site-footer site-footer-expanded"><div><strong>AMARAÈ Formulations</strong><span>Support: amaraeformulations@gmail.com · +91 95792 22532</span></div><div class="footer-links"><a href="privacy-policy.html">Privacy</a><a href="terms-and-conditions.html">Terms</a><a href="shipping-delivery.html">Shipping</a><a href="cancellation-refund.html">Returns</a></div><small>&copy; 2026 AMARAÈ Formulations.</small></footer>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="javas.js"></script>
@@ -61,7 +63,13 @@
           return;
         }
 
-        status.textContent = `Razorpay order ${razorpayOrderId} is ready.`;
+        if (config.gateway !== "razorpay") {
+          status.textContent = "Live Razorpay checkout has not been configured yet. Return to your cart and contact support if you need help.";
+          button.disabled = true;
+          return;
+        }
+
+        status.textContent = "Your secure Razorpay payment is ready. If payment is cancelled or declined, your cart will remain available.";
 
         button.addEventListener("click", () => {
           if (!window.Razorpay || !config.keyId) {
@@ -72,8 +80,8 @@
           const checkout = new Razorpay({
             key: config.keyId,
             order_id: razorpayOrderId,
-            name: "Amarae Beauty",
-            description: "Amarae perfume order payment",
+            name: "AMARAÈ Formulations",
+            description: "AMARAÈ fragrance order payment",
             handler: async (response) => {
               const verify = await fetch("/api/payments/razorpay/verify", {
                 method: "POST",
@@ -86,10 +94,17 @@
               });
 
               if (verify.ok) {
-                note.textContent = "Payment verified. Your order is confirmed.";
+                status.textContent = "Payment verified.";
+                note.innerHTML = "Your order is confirmed. We’ll share dispatch updates by email. <a href='collections.html'>Continue shopping</a>.";
+                button.disabled = true;
               } else {
-                note.textContent = "Payment verification failed. Please contact support.";
+                note.textContent = "We could not verify that payment. Your cart has been kept—please retry or contact amaraeformulations@gmail.com.";
               }
+            },
+            modal: {
+              ondismiss: () => {
+                note.textContent = "Payment was not completed. Your cart is still saved; you can retry whenever you are ready.";
+              },
             },
             theme: { color: "#1a1a1a" },
           });

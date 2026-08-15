@@ -1,7 +1,7 @@
 window.addEventListener("load", () => {
   const apiBase = "";
-  const sessionKey = "aetherSessionId";
-  const wishlistKey = "aetherWishlist";
+  const sessionKey = "amaraeSessionId";
+  const wishlistKey = "amaraeWishlist";
   const sessionId = getSessionId();
   let activeProducts = [];
   let activeFilter = "all";
@@ -9,8 +9,8 @@ window.addEventListener("load", () => {
 
   const fallbackProducts = [
     perfume(101, "Ocean Mist", "fresh", "Italian bergamot, sea salt, driftwood, and clean musk for hot-day freshness.", 2499, "assets/Perfume Bottle Falling Under Water _ Artistic Luxury Fragrance Design.webp", 32),
-    perfume(102, "Mystic Rose", "floral", "Velvet rose, lychee, pink pepper, and amber for soft romantic evenings.", 2799, "assets/red.jpg", 26),
-    perfume(103, "Amber Veil", "warm", "Vanilla, sandalwood, tonka, and white musk for a warm lasting trail.", 2999, "assets/brown.jpg", 28),
+    perfume(102, "Mystic Rose", "floral", "Velvet rose, lychee, pink pepper, and amber for soft romantic evenings.", 2799, "assets/mystic-rose-placeholder.jpg", 26),
+    perfume(103, "Amber Veil", "warm", "Vanilla, sandalwood, tonka, and white musk for a warm lasting trail.", 2999, "assets/amber-veil-placeholder.jpg", 28),
     perfume(104, "Golden Saffron", "luxury", "Saffron, jasmine, cedar, and amberwood with a premium Indian festive mood.", 3499, "assets/perfume-bottle-on-golden-satin-fabric-with-dried-w-2023-11-27-05-07-23-utc_1_3486d0f5-6587-4b89-a392-6dffe86c0ea1.webp", 18),
     perfume(105, "Velvet Oud", "luxury", "Oud, rosewood, smoked vanilla, and leather for confident night wear.", 3999, "assets/card2.jpg", 16),
     perfume(106, "Pear Bloom", "floral", "Pear skin, peony, freesia, and soft musk for a clean feminine signature.", 2399, "assets/elegant-purple-floral-perfume-bottle-on-display-png.webp", 34),
@@ -164,7 +164,7 @@ window.addEventListener("load", () => {
       const [name, desc] = recs[choice] || ["Pear Bloom", "A balanced floral scent that feels easy, modern, and giftable."];
 
       rTitle.textContent = choice ? name : "Choose a mood first";
-      rDesc.textContent = choice ? desc : "Pick at least one option to reveal your AETHER perfume match.";
+      rDesc.textContent = choice ? desc : "Pick at least one option to reveal your AMARAÈ perfume match.";
       result?.classList.add("show");
       result?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
@@ -223,15 +223,32 @@ window.addEventListener("load", () => {
         </div>
         <h3>${escapeHtml(product.name)}</h3>
         <p>${escapeHtml(product.description)}</p>
+        <div class="product-details"><span>100 ml · Eau de Parfum</span><span>Notes: ${escapeHtml(productNotes(product.name))}</span></div>
         <div class="product-promises">
           <span>${product.stock > 20 ? "In stock" : "Limited stock"}</span>
-          <span>Free tester card</span>
+          <span>MRP ${formatMoney(product.price)}</span>
         </div>
         <button class="add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
           ${product.stock > 0 ? "Add to cart" : "Sold out"}
         </button>
       </article>
     `;
+  }
+
+  function productNotes(name) {
+    const notes = {
+      "Ocean Mist": "bergamot · sea salt · clean musk",
+      "Mystic Rose": "lychee · rose · amber",
+      "Amber Veil": "vanilla · sandalwood · white musk",
+      "Golden Saffron": "saffron · jasmine · amberwood",
+      "Velvet Oud": "rosewood · oud · leather",
+      "Pear Bloom": "pear · peony · soft musk",
+      "Citrus Noir": "mandarin · neroli · vetiver",
+      "Vanilla Muse": "almond milk · vanilla · cashmere woods",
+      "Jasmine Rain": "water lily · jasmine sambac · sandalwood",
+      "Midnight Musk": "blackcurrant · incense · amber musk",
+    };
+    return notes[name] || "details coming soon";
   }
 
   function categoryLabel(category) {
@@ -306,11 +323,13 @@ window.addEventListener("load", () => {
       if (cart.items.length === 0) {
         cartItemsEl.innerHTML = '<div class="cart-empty">Your cart is empty. Add a perfume from the launch collection.</div>';
         cartTotalEl.textContent = formatMoney(0);
+        updateLaunchOffer([]);
         return;
       }
 
       cartItemsEl.innerHTML = cart.items.map(cartRowTemplate).join("");
       cartTotalEl.textContent = formatMoney(cart.total);
+      updateLaunchOffer(cart.items);
       attachCartRowButtons();
     } catch (error) {
       cartCountEls.forEach((el) => {
@@ -320,6 +339,27 @@ window.addEventListener("load", () => {
         cartItemsEl.innerHTML = '<div class="cart-empty">Live cart appears here after the backend starts.</div>';
       }
       if (cartTotalEl) cartTotalEl.textContent = formatMoney(0);
+    }
+  }
+
+  function updateLaunchOffer(items) {
+    const offer = document.getElementById("cartOffer");
+    const select = document.getElementById("complimentaryMini");
+    if (!offer) return;
+    const eligible = items.some((item) => item.quantity > 0);
+    offer.textContent = eligible
+      ? "Launch offer unlocked: choose a different 10 ml fragrance at checkout. The complimentary mini will be confirmed with your order."
+      : "Add a 100 ml fragrance to unlock your complimentary different 10 ml scent.";
+    if (select) {
+      select.disabled = !eligible;
+      const cartProductIds = new Set(items.map((item) => String(item.productId)));
+      const options = activeProducts
+        .filter((product) => !cartProductIds.has(String(product.id)) && product.stock > 0)
+        .map((product) => `<option value="${product.id}">${escapeHtml(product.name)} — complimentary 10 ml</option>`)
+        .join("");
+      select.innerHTML = eligible
+        ? `<option value="">Choose your complimentary mini</option>${options}`
+        : '<option value="">Add a fragrance to unlock this selection</option>';
     }
   }
 
@@ -365,7 +405,13 @@ window.addEventListener("load", () => {
         customerName: document.getElementById("customerName")?.value.trim(),
         email: document.getElementById("customerEmail")?.value.trim(),
         deliveryCity: document.getElementById("deliveryCity")?.value.trim(),
+        complimentaryMiniProductId: Number(document.getElementById("complimentaryMini")?.value) || null,
       };
+
+      if (!payload.complimentaryMiniProductId) {
+        showCheckoutNote("Choose your complimentary different 10 ml fragrance before proceeding to payment.");
+        return;
+      }
 
       try {
         const order = await api("/api/orders/checkout", {
@@ -373,8 +419,8 @@ window.addEventListener("load", () => {
           body: JSON.stringify(payload),
         });
         await loadCart();
-        showCheckoutNote(`Order #${order.id} created. Payment: ${order.paymentProvider}. Reference: ${order.paymentReference}.`);
-        if (order.paymentUrl) window.open(order.paymentUrl, "_blank");
+        showCheckoutNote(`Order #${order.id} is awaiting payment. Your cart will be kept until payment is verified.`);
+        if (order.paymentUrl) window.location.assign(order.paymentUrl);
       } catch (error) {
         showCheckoutNote(error.message);
       }
