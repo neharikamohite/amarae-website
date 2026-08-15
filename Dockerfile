@@ -7,15 +7,8 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:resolve
 
-# Copy entire source code
+# Copy entire source code (includes src/main/resources/static/ with all frontend files already in place)
 COPY . .
-
-# Copy static frontend files to Spring Boot's static resources directory
-# (HTML, CSS, JS files at root level must go into src/main/resources/static/ to be served by Spring Boot)
-RUN mkdir -p src/main/resources/static && \
-    cp index.html checkout.html chemistry.html collections.html findFragrance.html src/main/resources/static/ && \
-    cp javas.js style.css src/main/resources/static/ && \
-    cp -r assets src/main/resources/static/
 
 # Build the JAR
 RUN mvn clean package -DskipTests
