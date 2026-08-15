@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amarae Beauty - Find Your Perfume</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="cursor-aura"></div>
+
+    <header>
+      <div class="logo">AMARAE</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="collections.html">Shop</a></li>
+        <li><a href="findFragrance.html" class="active-page">Find Match</a></li>
+        <li><a href="chemistry.html">Notes</a></li>
+        <li><a href="collections.html#cart">Cart <span class="cart-count">0</span></a></li>
+      </ul>
+    </header>
+
+    <section class="page-wrap">
+      <h1 class="page-title">YOUR MATCH</h1>
+      <p class="page-sub">Three questions. One perfume.</p>
+
+      <div class="quiz-section">
+        <div class="step fade-up">
+          <h3>1. Your Main Goal</h3>
+          <div class="options" data-group="body">
+            <div class="opt">Signature Scent</div>
+            <div class="opt">Daily Office</div>
+            <div class="opt">Evening Wear</div>
+            <div class="opt">Gifting</div>
+            <div class="opt">Date Night</div>
+          </div>
+        </div>
+
+        <div class="step fade-up">
+          <h3>2. Your Note Preference</h3>
+          <div class="options" data-group="skin">
+            <div class="opt">Rose</div>
+            <div class="opt">Vanilla</div>
+            <div class="opt">Citrus</div>
+            <div class="opt">Oud</div>
+          </div>
+        </div>
+
+        <div class="step fade-up">
+          <h3>3. Mood You Wear</h3>
+          <div class="options" data-group="mood">
+            <div class="opt">Soft &amp; Romantic</div>
+            <div class="opt">Bold &amp; Confident</div>
+            <div class="opt">Fresh &amp; Easy</div>
+            <div class="opt">Warm &amp; Cozy</div>
+          </div>
+        </div>
+
+        <button class="reveal-btn" id="revealBtn">REVEAL MY MATCH</button>
+
+        <div class="result" id="result">
+          <h2 id="rTitle">Dewdrop Vitamin C</h2>
+          <p id="rDesc">Your ritual awaits.</p>
+          <a class="result-link" href="collections.html">Shop the match</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>&copy; 2026 Amarae Beauty.</footer>
+
+    <script src="javas.js"></script>
+  </body>
+</html>
