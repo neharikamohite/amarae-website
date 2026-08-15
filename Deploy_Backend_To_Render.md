@@ -1,6 +1,7 @@
 # Deploy Amarae Backend to Render (Live Hosting)
 
 ## Goal
+
 Move the Spring Boot backend from local-only (`localhost:8080`, local H2 database) to a live, publicly accessible deployment on Render, using a proper cloud database — so the website can eventually be reached at `amaraeformulations.com` instead of only on this computer.
 
 ---
@@ -12,21 +13,25 @@ Move the Spring Boot backend from local-only (`localhost:8080`, local H2 databas
 ### How to Sync:
 
 **Option A (Windows PowerShell):**
+
 ```powershell
 .\sync-static-files.ps1
 ```
 
 **Option B (Git Bash / Linux / Mac):**
+
 ```bash
 ./sync-static-files.sh
 ```
 
 **Option C (Manual):**
+
 ```bash
 git add src/main/resources/static/
 ```
 
 ### Workflow (repeat after every frontend change):
+
 1. Edit your HTML/CSS/JS/assets in the project root
 2. Run the sync script above
 3. `git add src/main/resources/static/`
