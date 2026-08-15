@@ -1,6 +1,7 @@
 # Frontend Version Mismatch Investigation Report
 
 ## Summary
+
 Your two live sites show different designs because they're pulling from **completely different sources** and have **not been updated in sync**.
 
 ---
@@ -8,6 +9,7 @@ Your two live sites show different designs because they're pulling from **comple
 ## Findings
 
 ### 1. Git History for Frontend Files (in this project)
+
 - **index.html**: Last committed **August 12, 2026** (commit `b2115df`)
 - **style.css**: Last committed **August 12, 2026** (commit `b2115df`)
 - **javas.js**: Last committed **August 12, 2026** (commit `b2115df`)
@@ -17,7 +19,9 @@ Your two live sites show different designs because they're pulling from **comple
 ---
 
 ### 2. File Locations in This Workspace
+
 All copies are **identical** (verified by file size):
+
 - **index.html**: 5,971 bytes
   - `./index.html` (project root)
   - `./src/main/resources/static/index.html` (Spring Boot classpath)
@@ -31,6 +35,7 @@ No separate/newer versions found elsewhere in this workspace.
 ---
 
 ### 3. Current Git Status
+
 - Only **1 uncommitted change**: `Deploy_Backend_To_Render.md` (documentation)
 - No uncommitted frontend file changes
 - This means: **You edited HTML/CSS/JS files locally but haven't committed/pushed them to Git**
@@ -40,17 +45,20 @@ No separate/newer versions found elsewhere in this workspace.
 ## Root Cause Analysis
 
 ### Why amarae-web.onrender.com shows old design:
+
 1. Render deploys from **this Git repository**
 2. Render pulls commit `e648d79` (latest)
 3. This commit contains index.html from August 12 (unchanged since initial)
 4. Result: Old design on Render
 
 ### Why amarae.netlify.app shows new design:
+
 1. Netlify deploys from a **DIFFERENT source** (likely a different GitHub repo, or a different branch)
 2. That project has been updated with your newer design
 3. Result: New design on Netlify
 
 ### Why your local edits don't appear on Render:
+
 1. You edited `index.html`, `style.css`, `javas.js` in the **project root folder**
 2. You ran the sync scripts (or manually copied) to `src/main/resources/static/`
 3. BUT: **You never committed those changes to Git**
@@ -62,6 +70,7 @@ No separate/newer versions found elsewhere in this workspace.
 ## Solution
 
 ### Option A: Update This Repo to Match Your Latest Design
+
 1. Make sure your latest HTML/CSS/JS are in the **project root** folder
 2. Run the sync script:
    ```bash
@@ -77,7 +86,9 @@ No separate/newer versions found elsewhere in this workspace.
 5. amarae-web.onrender.com will update to show the new design
 
 ### Option B: Consolidate to One Source
+
 If you're using **Netlify for frontend** and **Render for backend API**, consider:
+
 - Keep this Render deployment as **API only** (remove static files)
 - Have Netlify serve the frontend and call Render's `/api/*` endpoints
 - This way they don't compete; each does one job
@@ -96,6 +107,7 @@ If you're using **Netlify for frontend** and **Render for backend API**, conside
 ---
 
 ## Quick Status Check Commands
+
 ```bash
 # See what's not committed
 git status
