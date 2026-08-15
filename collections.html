@@ -3,14 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Amarae Beauty - Shop Perfumes</title>
+    <title>Shop Fragrances | AMARAÈ Formulations</title>
+    <meta name="description" content="Shop the AMARAÈ launch fragrance collection by mood, notes, and occasion." />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="cursor-aura"></div>
 
     <header class="site-header">
-      <a class="logo" href="index.html" aria-label="Amarae home">AMARAE</a>
+      <a class="logo" href="index.html" aria-label="AMARAÈ home"><img src="assets/Amaraè logo FL.png" alt="AMARAÈ" /></a>
       <nav aria-label="Main navigation">
         <ul class="nav-links">
           <li><a href="index.html">Home</a></li>
@@ -23,19 +24,19 @@
     </header>
 
     <main class="shop-page">
+      <section class="launch-banner" aria-label="Launch offer"><strong>Launch offer</strong><span>Buy one 100 ml fragrance and receive a complimentary 10 ml fragrance of a different scent. Limited launch allocation.</span></section>
       <section class="shop-hero">
         <div>
-          <p class="eyebrow">Amarae perfume launch</p>
           <h1>10 fragrances, one easy store.</h1>
           <p>
             Browse by mood, compare notes quickly, add to cart, and place a
-            real database-backed checkout request.
+            secure checkout when payment credentials are configured.
           </p>
         </div>
         <aside class="delivery-card" aria-label="Delivery and payment details">
-          <span id="realtimeStatus">Live store connecting...</span>
+          <span id="realtimeStatus">Store connecting...</span>
           <strong>Delivery in 2-4 days</strong>
-          <small>Demo payments now. Razorpay ready when keys are added.</small>
+          <small>Prepaid checkout. Razorpay is enabled only after live credentials are configured.</small>
         </aside>
       </section>
 
@@ -54,7 +55,7 @@
         </div>
       </section>
 
-      <section class="collection-grid product-grid" aria-live="polite" aria-label="Amarae products"></section>
+      <section class="collection-grid product-grid" aria-live="polite" aria-label="AMARAÈ products"></section>
 
       <section class="cart-panel" id="cart" aria-label="Shopping cart">
         <div class="cart-panel-head">
@@ -66,6 +67,9 @@
           <a class="secondary-btn compact" href="findFragrance.html">Need help choosing?</a>
         </div>
         <div class="cart-items" id="cartItems"></div>
+        <div class="cart-offer" id="cartOffer">Add a 100 ml fragrance to unlock your complimentary different 10 ml scent.</div>
+        <label class="mini-choice" for="complimentaryMini">Complimentary 10 ml fragrance (must be different from your cart)</label>
+        <select id="complimentaryMini" disabled><option value="">Add a fragrance to unlock this selection</option></select>
         <div class="cart-summary">
           <span>Total</span>
           <strong id="cartTotal">₹0</strong>
@@ -73,16 +77,18 @@
         <form class="checkout-form">
           <input id="customerName" type="text" placeholder="Full name" aria-label="Full name" />
           <input id="customerEmail" type="email" placeholder="Email address" aria-label="Email address" />
-          <input id="deliveryCity" type="text" placeholder="Delivery city" aria-label="Delivery city" />
-          <button type="button" class="primary-btn checkout-btn">Request checkout</button>
+          <input id="deliveryCity" type="text" placeholder="Delivery city and PIN code" aria-label="Delivery city and PIN code" />
+          <button type="button" class="primary-btn checkout-btn">Proceed to secure payment</button>
         </form>
         <p class="checkout-note" id="checkoutNote"></p>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <span>&copy; 2026 Amarae Beauty</span>
-      <span>Secure checkout, live cart, database products.</span>
+    <footer class="site-footer site-footer-expanded">
+      <div><strong>AMARAÈ Formulations</strong><span>Kalpataru Park Apartment, Unit No. 14, Kalanagar, Madhavnagar Road, Sangli 416416, Maharashtra, India</span></div>
+      <div><a href="mailto:amaraeformulations@gmail.com">amaraeformulations@gmail.com</a><a href="https://wa.me/919579222532">WhatsApp: +91 95792 22532</a></div>
+      <div class="footer-links"><a href="about.html">About Us</a><a href="privacy-policy.html">Privacy</a><a href="terms-and-conditions.html">Terms</a><a href="shipping-delivery.html">Shipping</a><a href="cancellation-refund.html">Returns</a></div>
+      <small>&copy; 2026 AMARAÈ Formulations. Business registration and GST details will be added once finalised.</small>
     </footer>
 
     <script src="javas.js"></script>

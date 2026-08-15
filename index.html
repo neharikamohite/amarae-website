@@ -3,14 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Amarae Beauty - Modern Perfume Store</title>
+    <title>AMARAÈ Formulations | Modern Perfume Store</title>
+    <meta name="description" content="Discover AMARAÈ fragrances—thoughtfully formulated scents for everyday rituals and special evenings." />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="cursor-aura"></div>
 
     <header class="site-header">
-      <a class="logo" href="index.html" aria-label="Amarae home">AMARAE</a>
+      <a class="logo" href="index.html" aria-label="AMARAÈ home"><img src="assets/Amaraè logo FL.png" alt="AMARAÈ" /></a>
       <nav aria-label="Main navigation">
         <ul class="nav-links">
           <li><a href="collections.html">Shop</a></li>
@@ -22,10 +23,13 @@
     </header>
 
     <main>
+      <section class="launch-banner" aria-label="Launch offer">
+        <strong>Launch offer</strong><span>Buy one 100 ml fragrance and receive a complimentary 10 ml fragrance of a different scent. Limited launch allocation.</span>
+      </section>
       <section class="home-hero">
         <div class="hero-copy">
           <p class="eyebrow">10 fragrance launch collection</p>
-          <h1>AMARAE</h1>
+          <h1>AMARAÈ</h1>
           <p>
             Perfumes made for Indian routines: elegant enough for evenings,
             easy enough for everyday wear, and ready for future beauty drops.
@@ -35,10 +39,10 @@
             <a class="secondary-btn" href="findFragrance.html">Find my scent</a>
           </div>
         </div>
-        <div class="hero-visual" aria-label="Amarae perfume bottle">
+        <div class="hero-visual" aria-label="AMARAÈ perfume bottle">
           <img
             src="assets/perfume-bottle-on-golden-satin-fabric-with-dried-w-2023-11-27-05-07-23-utc_1_3486d0f5-6587-4b89-a392-6dffe86c0ea1.webp"
-            alt="Amarae amber perfume bottle on satin"
+            alt="AMARAÈ amber perfume bottle on satin"
           />
         </div>
       </section>
@@ -54,8 +58,34 @@
         </article>
         <article>
           <strong>Live</strong>
-          <span>Products, cart, orders, and payment sessions connect to Spring Boot.</span>
+          <span>Secure checkout is available when live payment credentials are configured.</span>
         </article>
+      </section>
+
+      <section class="trust-section" id="quality">
+        <div class="section-heading">
+          <p class="eyebrow">Quality &amp; sourcing</p>
+          <h2>Thoughtful formulation, with care.</h2>
+        </div>
+        <div class="trust-grid">
+          <article><h3>Givaudan-sourced oils</h3><p>Our fragrance oils are sourced from Givaudan and selected to support our intended scent profiles.</p></article>
+          <article><h3>Conscious formulation</h3><p>Our formulas are developed to be cruelty-free and aligned with applicable IFRA fragrance standards.</p></article>
+          <article><h3>Ingredient care</h3><p>We use ingredients selected for cosmetic use and work toward appropriate safety documentation. Patch-test first and discontinue use if irritation occurs.</p></article>
+        </div>
+      </section>
+
+      <section class="testimonials" aria-labelledby="testimonial-title">
+        <div class="section-heading"><p class="eyebrow">Community notes</p><h2 id="testimonial-title">Early impressions, coming soon.</h2><p>We’ll share verified tester feedback once production samples are in customers’ hands.</p></div>
+        <div class="testimonial-grid">
+          <blockquote>“Tester reviews will appear here after the first sample round.”<cite>— AMARAÈ community</cite></blockquote>
+          <blockquote>“A place for thoughtful, verified fragrance feedback.”<cite>— AMARAÈ community</cite></blockquote>
+        </div>
+      </section>
+
+      <section class="about-section" id="about">
+        <div class="section-heading"><p class="eyebrow">About AMARAÈ</p><h2>Fragrance for the moments you make your own.</h2></div>
+        <p>AMARAÈ Formulations is an independent fragrance house creating considered scents for Indian routines, celebrations, and everyday self-expression.</p>
+        <a class="secondary-btn compact" href="about.html">Our story</a>
       </section>
 
       <section class="launch-preview">
@@ -73,7 +103,7 @@
             </div>
           </article>
           <article class="preview-card">
-            <img src="assets/red.jpg" alt="Rose perfume" />
+            <img src="assets/mystic-rose-placeholder.jpg" alt="Rose perfume placeholder" />
             <div>
               <span>Floral</span>
               <h3>Mystic Rose</h3>
@@ -81,7 +111,7 @@
             </div>
           </article>
           <article class="preview-card">
-            <img src="assets/brown.jpg" alt="Warm amber perfume" />
+            <img src="assets/amber-veil-placeholder.jpg" alt="Warm amber perfume placeholder" />
             <div>
               <span>Warm</span>
               <h3>Amber Veil</h3>
@@ -109,13 +139,13 @@
               <img src="assets/Perfume Bottle Falling Under Water _ Artistic Luxury Fragrance Design.webp" alt="Ocean Mist" />
             </button>
             <button class="orbit-item" data-vid="assets/e_b_mp_.mp4" data-name="MYSTIC ROSE">
-              <img src="assets/red.jpg" alt="Mystic Rose" />
+              <img src="assets/mystic-rose-placeholder.jpg" alt="Mystic Rose placeholder" />
             </button>
             <button class="orbit-item" data-vid="assets/Video_Mystic_Rose____Aesth.mp4" data-name="GOLDEN SAFFRON">
               <img src="assets/perfume-bottle-on-golden-satin-fabric-with-dried-w-2023-11-27-05-07-23-utc_1_3486d0f5-6587-4b89-a392-6dffe86c0ea1.webp" alt="Golden Saffron" />
             </button>
             <button class="orbit-item" data-vid="assets/7815734-hd_1920_1080_25fps.mp4" data-name="AMBER VEIL">
-              <img src="assets/brown.jpg" alt="Amber Veil" />
+              <img src="assets/amber-veil-placeholder.jpg" alt="Amber Veil placeholder" />
             </button>
           </div>
         </div>
@@ -135,9 +165,11 @@
       </section>
     </main>
 
-    <footer class="site-footer">
-      <span>&copy; 2026 Amarae Beauty</span>
-      <span>Perfume today. Beauty ecosystem tomorrow.</span>
+    <footer class="site-footer site-footer-expanded">
+      <div><strong>AMARAÈ Formulations</strong><span>Kalpataru Park Apartment, Unit No. 14, Kalanagar, Madhavnagar Road, Sangli 416416, Maharashtra, India</span></div>
+      <div><a href="mailto:amaraeformulations@gmail.com">amaraeformulations@gmail.com</a><a href="https://wa.me/919579222532">WhatsApp: +91 95792 22532</a><a href="tel:+919579222532">Phone: +91 95792 22532</a></div>
+      <div class="footer-links"><a href="about.html">About Us</a><a href="privacy-policy.html">Privacy</a><a href="terms-and-conditions.html">Terms</a><a href="shipping-delivery.html">Shipping</a><a href="cancellation-refund.html">Returns</a></div>
+      <small>&copy; 2026 AMARAÈ Formulations. Business registration and GST details will be added once finalised.</small>
     </footer>
 
     <script src="javas.js"></script>
