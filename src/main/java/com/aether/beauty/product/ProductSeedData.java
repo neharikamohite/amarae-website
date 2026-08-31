@@ -17,16 +17,12 @@ public class ProductSeedData implements CommandLineRunner {
   @Override
   public void run(String... args) {
     Set<String> launchNames = Set.of(
-      "Ocean Mist",
-      "Mystic Rose",
-      "Amber Veil",
-      "Golden Saffron",
-      "Velvet Oud",
-      "Pear Bloom",
-      "Citrus Noir",
-      "Vanilla Muse",
-      "Jasmine Rain",
-      "Midnight Musk"
+      "Crown Voyage",
+      "Wild Sovereign",
+      "Royal White Oud",
+      "Golden Liberté",
+      "Blooming Élise",
+      "Crystal Ember"
     );
 
     productRepository
@@ -39,16 +35,12 @@ public class ProductSeedData implements CommandLineRunner {
         productRepository.save(product);
       });
 
-    save("Ocean Mist", "fresh", "Italian bergamot, sea salt, driftwood, and clean musk for hot-day freshness.", "2499.00", "assets/Perfume Bottle Falling Under Water _ Artistic Luxury Fragrance Design.webp", 32);
-    save("Mystic Rose", "floral", "Velvet rose, lychee, pink pepper, and amber for soft romantic evenings.", "2799.00", "assets/red.jpg", 26);
-    save("Amber Veil", "warm", "Vanilla, sandalwood, tonka, and white musk for a warm lasting trail.", "2999.00", "assets/brown.jpg", 28);
-    save("Golden Saffron", "luxury", "Saffron, jasmine, cedar, and amberwood with a premium Indian festive mood.", "3499.00", "assets/perfume-bottle-on-golden-satin-fabric-with-dried-w-2023-11-27-05-07-23-utc_1_3486d0f5-6587-4b89-a392-6dffe86c0ea1.webp", 18);
-    save("Velvet Oud", "luxury", "Oud, rosewood, smoked vanilla, and leather for confident night wear.", "3999.00", "assets/card2.jpg", 16);
-    save("Pear Bloom", "floral", "Pear skin, peony, freesia, and soft musk for a clean feminine signature.", "2399.00", "assets/elegant-purple-floral-perfume-bottle-on-display-png.webp", 34);
-    save("Citrus Noir", "fresh", "Mandarin, neroli, vetiver, and tea leaves for sharp everyday polish.", "2599.00", "assets/green.jpg", 30);
-    save("Vanilla Muse", "gourmand", "Madagascar vanilla, almond milk, caramel, and cashmere woods.", "2899.00", "assets/sunset.jpg", 24);
-    save("Jasmine Rain", "floral", "Jasmine sambac, water lily, dew accord, and creamy sandalwood.", "2699.00", "assets/bottle-aquatic-perfume-on-stones-600nw-2460780335.webp", 29);
-    save("Midnight Musk", "warm", "Blackcurrant, incense, amber, and skin musk for a mature evening aura.", "3199.00", "assets/4c399652be8a5188072c6f063875c4cb.jpg", 21);
+    save("Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", "1499.00", "assets/crown-voyage.jpg", 40);
+    save("Wild Sovereign", "woody", "Citrus bergamot and lavender settle into warm amber woods, wild, untamed, and free.", "1499.00", "assets/wild-sovereign.jpg", 35);
+    save("Royal White Oud", "luxury", "Saffron and rose petals wrapped around smooth white oud, for an opulent, refined, timeless evening trail.", "1499.00", "assets/royal-white-oud.jpg", 30);
+    save("Golden Liberté", "warm", "Orange blossom, lavender, and Madagascar vanilla for a poignant, sensual warmth that lingers.", "1499.00", "assets/golden-liberte.jpg", 32);
+    save("Blooming Élise", "floral", "Pink rose and soft petals for a graceful, blooming floral signature.", "1499.00", "assets/blooming-elise.jpg", 38);
+    save("Crystal Ember", "luxury", "Saffron threads, white flowers, and warm sandalwood for a radiant, addictive glow.", "1499.00", "assets/crystal-ember.jpg", 28);
   }
 
   private void save(

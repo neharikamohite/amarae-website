@@ -8,16 +8,12 @@ window.addEventListener("load", () => {
   let activeSearch = "";
 
   const fallbackProducts = [
-    perfume(101, "Ocean Mist", "fresh", "Italian bergamot, sea salt, driftwood, and clean musk for hot-day freshness.", 2499, "assets/Perfume Bottle Falling Under Water _ Artistic Luxury Fragrance Design.webp", 32),
-    perfume(102, "Mystic Rose", "floral", "Velvet rose, lychee, pink pepper, and amber for soft romantic evenings.", 2799, "assets/mystic-rose-placeholder.jpg", 26),
-    perfume(103, "Amber Veil", "warm", "Vanilla, sandalwood, tonka, and white musk for a warm lasting trail.", 2999, "assets/amber-veil-placeholder.jpg", 28),
-    perfume(104, "Golden Saffron", "luxury", "Saffron, jasmine, cedar, and amberwood with a premium Indian festive mood.", 3499, "assets/perfume-bottle-on-golden-satin-fabric-with-dried-w-2023-11-27-05-07-23-utc_1_3486d0f5-6587-4b89-a392-6dffe86c0ea1.webp", 18),
-    perfume(105, "Velvet Oud", "luxury", "Oud, rosewood, smoked vanilla, and leather for confident night wear.", 3999, "assets/card2.jpg", 16),
-    perfume(106, "Pear Bloom", "floral", "Pear skin, peony, freesia, and soft musk for a clean feminine signature.", 2399, "assets/elegant-purple-floral-perfume-bottle-on-display-png.webp", 34),
-    perfume(107, "Citrus Noir", "fresh", "Mandarin, neroli, vetiver, and tea leaves for sharp everyday polish.", 2599, "assets/green.jpg", 30),
-    perfume(108, "Vanilla Muse", "gourmand", "Madagascar vanilla, almond milk, caramel, and cashmere woods.", 2899, "assets/sunset.jpg", 24),
-    perfume(109, "Jasmine Rain", "floral", "Jasmine sambac, water lily, dew accord, and creamy sandalwood.", 2699, "assets/bottle-aquatic-perfume-on-stones-600nw-2460780335.webp", 29),
-    perfume(110, "Midnight Musk", "warm", "Blackcurrant, incense, amber, and skin musk for a mature evening aura.", 3199, "assets/4c399652be8a5188072c6f063875c4cb.jpg", 21),
+    perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40),
+    perfume(102, "Wild Sovereign", "woody", "Citrus bergamot and lavender settle into warm amber woods, wild, untamed, and free.", 1499, "assets/wild-sovereign.jpg", 35),
+    perfume(103, "Royal White Oud", "luxury", "Saffron and rose petals wrapped around smooth white oud, for an opulent, refined, timeless evening trail.", 1499, "assets/royal-white-oud.jpg", 30),
+    perfume(104, "Golden Liberté", "warm", "Orange blossom, lavender, and Madagascar vanilla for a poignant, sensual warmth that lingers.", 1499, "assets/golden-liberte.jpg", 32),
+    perfume(105, "Blooming Élise", "floral", "Pink rose and soft petals for a graceful, blooming floral signature.", 1499, "assets/blooming-elise.jpg", 38),
+    perfume(106, "Crystal Ember", "luxury", "Saffron threads, white flowers, and warm sandalwood for a radiant, addictive glow.", 1499, "assets/crystal-ember.jpg", 28),
   ];
 
   moveCursorAura();
@@ -138,11 +134,11 @@ window.addEventListener("load", () => {
 
   function initQuiz() {
     const recs = {
-      "Fresh & Easy": ["Ocean Mist", "Clean citrus, sea salt, and musk for daily freshness."],
-      "Soft & Romantic": ["Mystic Rose", "Velvet rose and amber for a polished romantic trail."],
-      "Bold & Confident": ["Velvet Oud", "Oud, rosewood, and smoked vanilla for evening confidence."],
-      "Warm & Cozy": ["Amber Veil", "Vanilla, sandalwood, and musk for soft warmth."],
-      "Signature Scent": ["Golden Saffron", "Saffron, jasmine, cedar, and amberwood with a premium mood."],
+      "Fresh & Easy": ["Crown Voyage", "Bergamot, green apple, lime, and blackcurrant for a bold, everyday-ready freshness."],
+      "Soft & Romantic": ["Blooming Élise", "Pink rose and soft petals for a graceful, romantic trail."],
+      "Bold & Confident": ["Royal White Oud", "Saffron, rose, and smooth white oud for confident evening wear."],
+      "Warm & Cozy": ["Golden Liberté", "Orange blossom, lavender, and vanilla for a sensual, cozy warmth."],
+      "Signature Scent": ["Crystal Ember", "Saffron, white flowers, and sandalwood for a radiant signature scent."],
     };
 
     document.querySelectorAll(".options").forEach((group) => {
@@ -161,7 +157,7 @@ window.addEventListener("load", () => {
       const rTitle = document.getElementById("rTitle");
       const rDesc = document.getElementById("rDesc");
       const choice = selectedMood?.textContent.trim() || selectedGoal?.textContent.trim();
-      const [name, desc] = recs[choice] || ["Pear Bloom", "A balanced floral scent that feels easy, modern, and giftable."];
+      const [name, desc] = recs[choice] || ["Wild Sovereign", "A balanced, versatile scent that feels easy, modern, and giftable."];
 
       rTitle.textContent = choice ? name : "Choose a mood first";
       rDesc.textContent = choice ? desc : "Pick at least one option to reveal your AMARAÈ perfume match.";
@@ -237,16 +233,12 @@ window.addEventListener("load", () => {
 
   function productNotes(name) {
     const notes = {
-      "Ocean Mist": "bergamot · sea salt · clean musk",
-      "Mystic Rose": "lychee · rose · amber",
-      "Amber Veil": "vanilla · sandalwood · white musk",
-      "Golden Saffron": "saffron · jasmine · amberwood",
-      "Velvet Oud": "rosewood · oud · leather",
-      "Pear Bloom": "pear · peony · soft musk",
-      "Citrus Noir": "mandarin · neroli · vetiver",
-      "Vanilla Muse": "almond milk · vanilla · cashmere woods",
-      "Jasmine Rain": "water lily · jasmine sambac · sandalwood",
-      "Midnight Musk": "blackcurrant · incense · amber musk",
+      "Crown Voyage": "bergamot · green apple · lime · blackcurrant",
+      "Wild Sovereign": "bergamot · lavender · amber woods",
+      "Royal White Oud": "saffron · rose · white oud",
+      "Golden Liberté": "orange blossom · lavender · vanilla",
+      "Blooming Élise": "pink rose · soft petals",
+      "Crystal Ember": "saffron · white flowers · sandalwood",
     };
     return notes[name] || "details coming soon";
   }
@@ -256,6 +248,7 @@ window.addEventListener("load", () => {
       fresh: "Fresh",
       floral: "Floral",
       warm: "Warm",
+      woody: "Woody",
       luxury: "Luxury",
       gourmand: "Sweet",
       fragrance: "Perfume",
