@@ -10,7 +10,7 @@ STATIC_DIR="src/main/resources/static"
 mkdir -p "$STATIC_DIR"
 
 # Copy HTML files
-for file in index.html checkout.html chemistry.html collections.html findFragrance.html; do
+for file in index.html checkout.html chemistry.html collections.html findFragrance.html about.html cancellation-refund.html privacy-policy.html shipping-delivery.html terms-and-conditions.html; do
     if [ -f "$file" ]; then
         cp "$file" "$STATIC_DIR/"
         echo "Copied: $file"

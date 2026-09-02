@@ -12,7 +12,7 @@ if (-not (Test-Path $staticDir)) {
 }
 
 # Copy HTML files
-$htmlFiles = @("index.html", "checkout.html", "chemistry.html", "collections.html", "findFragrance.html")
+$htmlFiles = @("index.html", "checkout.html", "chemistry.html", "collections.html", "findFragrance.html", "about.html", "cancellation-refund.html", "privacy-policy.html", "shipping-delivery.html", "terms-and-conditions.html")
 foreach ($file in $htmlFiles) {
     if (Test-Path $file) {
         Copy-Item $file "$staticDir\" -Force
