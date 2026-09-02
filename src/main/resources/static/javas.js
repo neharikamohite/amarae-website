@@ -237,6 +237,7 @@ window.addEventListener("load", () => {
           <strong>${formatMoney(product.price)}</strong>
         </div>
         <h3>${escapeHtml(product.name)}</h3>
+        ${cardRatingTemplate(product)}
         <p class="card-hint">Tap to view full details, notes, and reviews</p>
         <button class="add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
           ${product.stock > 0 ? "Add to cart" : "Sold out"}
@@ -278,7 +279,7 @@ window.addEventListener("load", () => {
           <span class="modal-category">${categoryLabel(product.category)}</span>
         </div>
         <h2>${escapeHtml(product.name)}</h2>
-        <div class="modal-rating">${ratingTemplate()}</div>
+        <div class="modal-rating">${ratingTemplate(product)}</div>
         <strong class="modal-price">${formatMoney(product.price)}</strong>
         <p class="modal-description">${escapeHtml(product.description)}</p>
         <div class="modal-fact-grid">
@@ -290,10 +291,7 @@ window.addEventListener("load", () => {
         <button class="primary-btn modal-add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
           ${product.stock > 0 ? "Add to cart" : "Sold out"}
         </button>
-        <section class="modal-reviews">
-          <h3>Ratings &amp; Reviews</h3>
-          <p class="modal-reviews-empty">This is a new launch fragrance, so there are no customer reviews yet. Be the first to try it and share your rating.</p>
-        </section>
+        ${reviewsSectionTemplate(product.id)}
       </div>
     `;
 
@@ -305,16 +303,288 @@ window.addEventListener("load", () => {
     modalBody.querySelector(".modal-add-cart")?.addEventListener("click", () => {
       document.querySelector(`.add-cart[data-product-id="${product.id}"]`)?.click();
     });
+
+    loadReviews(product.id);
+    attachReviewForm(product.id);
   }
 
-  // Honest placeholder: outlined stars + "no reviews yet" rather than a
-  // fabricated rating, since these are newly launched fragrances with no
-  // real customer reviews to show.
-  function ratingTemplate() {
+  // Real star rating pulled from the product's live aggregate (avgRating /
+  // reviewCount, recomputed server-side every time a review is posted).
+  // Falls back to an honest "no ratings yet" for launch fragrances with no
+  // reviews rather than showing a fabricated score.
+  function ratingTemplate(product) {
+    const count = Number(product?.reviewCount) || 0;
+    const avg = Number(product?.avgRating) || 0;
+    const label = count === 0 ? "No ratings yet" : `${avg.toFixed(1)} out of 5 · ${count} review${count === 1 ? "" : "s"}`;
     return `
-      <span class="stars" aria-hidden="true">${"☆".repeat(5)}</span>
-      <span class="rating-label">No ratings yet</span>
+      <span class="stars" aria-hidden="true">${starGlyphs(avg)}</span>
+      <span class="rating-label">${label}</span>
     `;
+  }
+
+  function cardRatingTemplate(product) {
+    const count = Number(product?.reviewCount) || 0;
+    const avg = Number(product?.avgRating) || 0;
+    return `
+      <div class="card-rating">
+        <span class="stars" aria-hidden="true">${starGlyphs(avg)}</span>
+        <span class="rating-label">${count === 0 ? "No ratings yet" : `${avg.toFixed(1)} (${count})`}</span>
+      </div>
+    `;
+  }
+
+  function starGlyphs(rating) {
+    const filled = Math.round(Math.min(5, Math.max(0, Number(rating) || 0)));
+    return "★".repeat(filled) + "☆".repeat(5 - filled);
+  }
+
+  // ---------- Ratings & Reviews: display, submission, real-time refresh ----------
+
+  function reviewsSectionTemplate(productId) {
+    return `
+      <section class="modal-reviews" id="modalReviews" data-product-id="${productId}">
+        <div class="reviews-header">
+          <h3>Ratings &amp; Reviews</h3>
+          <div class="reviews-summary" id="reviewsSummary"></div>
+        </div>
+        <div class="reviews-list" id="reviewsList">
+          <p class="reviews-empty">Loading reviews…</p>
+        </div>
+        <form class="review-form" id="reviewForm" novalidate>
+          <h4>Write a review</h4>
+          <div class="review-form-row">
+            <label class="review-name-field">
+              Your name
+              <input type="text" id="reviewName" placeholder="e.g. Priya S." maxlength="60" autocomplete="name" />
+            </label>
+            <div class="review-star-input" id="reviewStarInput" role="radiogroup" aria-label="Your star rating">
+              ${[1, 2, 3, 4, 5]
+                .map(
+                  (n) =>
+                    `<button type="button" class="star-pick" data-value="${n}" aria-label="${n} star${n > 1 ? "s" : ""}">★</button>`
+                )
+                .join("")}
+            </div>
+          </div>
+          <label>
+            Your review
+            <textarea id="reviewComment" rows="3" maxlength="2000" placeholder="How does it wear? Longevity, occasions, what you loved..."></textarea>
+          </label>
+          <label class="review-file-label">
+            <span>Add photos or videos <em>(optional — up to 6 files, 8&nbsp;MB photos / 60&nbsp;MB videos)</em></span>
+            <input type="file" id="reviewFiles" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" multiple />
+          </label>
+          <div class="review-file-preview" id="reviewFilePreview"></div>
+          <p class="review-form-note" id="reviewFormNote" role="status"></p>
+          <button type="submit" class="primary-btn compact review-submit-btn" id="reviewSubmitBtn">Post review</button>
+        </form>
+      </section>
+    `;
+  }
+
+  async function loadReviews(productId) {
+    const list = document.getElementById("reviewsList");
+    const summary = document.getElementById("reviewsSummary");
+    if (!list) return;
+    try {
+      const reviews = await api(`/api/products/${productId}/reviews`);
+      if (summary) summary.innerHTML = reviewsSummaryTemplate(reviews);
+      list.innerHTML = reviews.length
+        ? reviews.map(reviewCardTemplate).join("")
+        : '<p class="reviews-empty">No reviews yet — be the first to share yours.</p>';
+      attachReviewMediaHandlers(list);
+    } catch (error) {
+      if (summary) summary.innerHTML = "";
+      list.innerHTML =
+        '<p class="reviews-empty">Reviews are unavailable right now — start the backend to load and post live reviews.</p>';
+    }
+  }
+
+  function reviewsSummaryTemplate(reviews) {
+    if (!reviews.length) return "";
+    const avg = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+    return `
+      <span class="stars" aria-hidden="true">${starGlyphs(avg)}</span>
+      <strong>${avg.toFixed(1)}</strong>
+      <span>out of 5 · ${reviews.length} review${reviews.length === 1 ? "" : "s"}</span>
+    `;
+  }
+
+  function reviewCardTemplate(review) {
+    const initial = (review.customerName || "?").trim().charAt(0).toUpperCase() || "?";
+    const date = formatReviewDate(review.createdAt);
+    const media = (review.media || []).length
+      ? `<div class="review-media">${review.media.map(reviewMediaTemplate).join("")}</div>`
+      : "";
+    return `
+      <article class="review-card">
+        <div class="review-card-head">
+          <span class="review-avatar" aria-hidden="true">${escapeHtml(initial)}</span>
+          <div class="review-card-who">
+            <strong class="review-author">${escapeHtml(review.customerName)}</strong>
+            <div class="review-card-meta">
+              <span class="stars" aria-hidden="true">${starGlyphs(review.rating)}</span>
+              ${date ? `<span class="review-date">${escapeHtml(date)}</span>` : ""}
+            </div>
+          </div>
+        </div>
+        ${review.comment ? `<p class="review-comment">${escapeHtml(review.comment)}</p>` : ""}
+        ${media}
+      </article>
+    `;
+  }
+
+  function reviewMediaTemplate(media) {
+    if (media.mediaType === "VIDEO") {
+      return `<video class="review-media-item" src="${escapeHtml(media.url)}" controls playsinline preload="metadata"></video>`;
+    }
+    return `<button type="button" class="review-media-item review-media-image" style="background-image:url('${escapeHtml(media.url)}')" data-full="${escapeHtml(media.url)}" aria-label="View full-size photo"></button>`;
+  }
+
+  function attachReviewMediaHandlers(container) {
+    container.querySelectorAll(".review-media-image").forEach((button) => {
+      button.addEventListener("click", () => openMediaLightbox(button.dataset.full));
+    });
+  }
+
+  function openMediaLightbox(url) {
+    const overlay = document.createElement("div");
+    overlay.className = "media-lightbox";
+    overlay.innerHTML = `<img src="${escapeHtml(url)}" alt="Customer review photo" />`;
+    overlay.addEventListener("click", () => overlay.remove());
+    document.addEventListener(
+      "keydown",
+      function onKey(event) {
+        if (event.key === "Escape") {
+          overlay.remove();
+          document.removeEventListener("keydown", onKey);
+        }
+      },
+      { once: true }
+    );
+    document.body.appendChild(overlay);
+  }
+
+  function formatReviewDate(iso) {
+    if (!iso) return "";
+    try {
+      return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function attachReviewForm(productId) {
+    const form = document.getElementById("reviewForm");
+    if (!form) return;
+
+    const nameInput = document.getElementById("reviewName");
+    const starButtons = Array.from(form.querySelectorAll(".star-pick"));
+    const commentInput = document.getElementById("reviewComment");
+    const fileInput = document.getElementById("reviewFiles");
+    const filePreview = document.getElementById("reviewFilePreview");
+    const noteEl = document.getElementById("reviewFormNote");
+    const submitBtn = document.getElementById("reviewSubmitBtn");
+    let selectedRating = 0;
+
+    const savedName = localStorage.getItem("amaraeReviewerName");
+    if (savedName && nameInput) nameInput.value = savedName;
+
+    function paintStars(activeValue) {
+      starButtons.forEach((button) => {
+        button.classList.toggle("filled", Number(button.dataset.value) <= activeValue);
+      });
+    }
+
+    starButtons.forEach((button) => {
+      const value = Number(button.dataset.value);
+      button.addEventListener("mouseenter", () => paintStars(value));
+      button.addEventListener("mouseleave", () => paintStars(selectedRating));
+      button.addEventListener("focus", () => paintStars(value));
+      button.addEventListener("blur", () => paintStars(selectedRating));
+      button.addEventListener("click", () => {
+        selectedRating = value;
+        paintStars(selectedRating);
+      });
+    });
+
+    fileInput?.addEventListener("change", () => {
+      const files = Array.from(fileInput.files || []);
+      filePreview.innerHTML = files
+        .map((file) => `<span class="review-file-chip">${escapeHtml(file.name)}</span>`)
+        .join("");
+      if (files.length > 6) {
+        noteEl.textContent = "You can attach up to 6 photos or videos per review.";
+        noteEl.classList.add("error");
+      } else {
+        noteEl.textContent = "";
+        noteEl.classList.remove("error");
+      }
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const customerName = nameInput.value.trim();
+      const comment = commentInput.value.trim();
+      const files = Array.from(fileInput?.files || []);
+
+      if (!customerName) {
+        noteEl.textContent = "Please enter your name.";
+        noteEl.classList.add("error");
+        nameInput.focus();
+        return;
+      }
+      if (!selectedRating) {
+        noteEl.textContent = "Please choose a star rating.";
+        noteEl.classList.add("error");
+        return;
+      }
+      if (files.length > 6) {
+        noteEl.textContent = "You can attach up to 6 photos or videos per review.";
+        noteEl.classList.add("error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Posting…";
+      noteEl.classList.remove("error");
+      noteEl.textContent = "";
+
+      try {
+        const formData = new FormData();
+        formData.append("customerName", customerName);
+        formData.append("rating", String(selectedRating));
+        if (comment) formData.append("comment", comment);
+        files.forEach((file) => formData.append("files", file));
+
+        const response = await fetch(`/api/products/${productId}/reviews`, {
+          method: "POST",
+          headers: { "X-Aether-Session": sessionId },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          throw new Error(errorBody.error || "Could not post your review. Please try again.");
+        }
+
+        localStorage.setItem("amaraeReviewerName", customerName);
+        commentInput.value = "";
+        if (fileInput) fileInput.value = "";
+        filePreview.innerHTML = "";
+        noteEl.classList.remove("error");
+        noteEl.textContent = "Thanks — your review is live for every shopper to see.";
+
+        await loadReviews(productId);
+        await loadProducts();
+      } catch (error) {
+        noteEl.textContent = error.message;
+        noteEl.classList.add("error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Post review";
+      }
+    });
   }
 
   function closeProductModal() {
@@ -564,6 +834,17 @@ window.addEventListener("load", () => {
       stream.addEventListener("products", loadProducts);
       stream.addEventListener("cart", loadCart);
       stream.addEventListener("orders", loadCart);
+      // Any shopper posting a star rating / photo / video review broadcasts
+      // here, so every open browser tab updates live: product grid ratings
+      // refresh everywhere, and anyone with that exact product open sees
+      // the new review appear without reloading the page.
+      stream.addEventListener("reviews", (event) => {
+        loadProducts();
+        const openReviews = document.getElementById("modalReviews");
+        if (openReviews && String(openReviews.dataset.productId) === String(event.data).trim()) {
+          loadReviews(openReviews.dataset.productId);
+        }
+      });
     } catch (error) {
       setRealtimeStatus("Preview mode - backend offline");
     }
