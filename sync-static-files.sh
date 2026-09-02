@@ -29,6 +29,12 @@ for file in javas.js style.css; do
     fi
 done
 
+# Copy root favicon (browser tab icon)
+if [ -f "favicon.ico" ]; then
+    cp "favicon.ico" "$STATIC_DIR/"
+    echo "Copied: favicon.ico"
+fi
+
 # Copy assets folder
 if [ -d "assets" ]; then
     cp -r assets "$STATIC_DIR/"

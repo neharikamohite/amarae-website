@@ -33,6 +33,12 @@ foreach ($file in $staticFiles) {
     }
 }
 
+# Copy root favicon (browser tab icon)
+if (Test-Path "favicon.ico") {
+    Copy-Item "favicon.ico" "$staticDir\" -Force
+    Write-Host "Copied: favicon.ico" -ForegroundColor Green
+}
+
 # Copy assets folder
 if (Test-Path "assets") {
     Copy-Item -Path "assets" -Destination "$staticDir\" -Recurse -Force
