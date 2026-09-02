@@ -10,6 +10,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 public class MediaStorageService {
+  private static final Logger log = LoggerFactory.getLogger(MediaStorageService.class);
   private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
   private static final Set<String> VIDEO_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
   private static final long MAX_IMAGE_BYTES = 8L * 1024 * 1024; // 8 MB
@@ -44,7 +47,7 @@ public class MediaStorageService {
     @Value("${aether.media.storage-dir:uploads/reviews}") String storageDir,
     @Value("${aether.media.public-path:/media/reviews}") String publicPath
   ) {
-    this.cloudinary = (cloudinaryUrl == null || cloudinaryUrl.isBlank()) ? null : new Cloudinary(cloudinaryUrl);
+    this.cloudinary = buildCloudinary(cloudinaryUrl);
     this.localStorageDir = Path.of(storageDir);
     this.localPublicPath = publicPath;
     if (this.cloudinary == null) {
@@ -53,6 +56,30 @@ public class MediaStorageService {
       } catch (IOException ex) {
         throw new UncheckedIOException("Could not create media storage directory: " + storageDir, ex);
       }
+    }
+  }
+
+  /**
+   * A malformed CLOUDINARY_URL used to throw straight out of the
+   * constructor and take the whole Spring context down with it — the app
+   * would fail to start on Render and the previous successful deploy would
+   * keep serving instead. Now a bad value just falls back to local disk
+   * storage and logs a clear warning, so a typo in an env var can never
+   * block a deploy again.
+   */
+  private static Cloudinary buildCloudinary(String cloudinaryUrl) {
+    if (cloudinaryUrl == null || cloudinaryUrl.isBlank()) {
+      return null;
+    }
+    try {
+      return new Cloudinary(cloudinaryUrl.trim());
+    } catch (RuntimeException ex) {
+      log.warn(
+        "CLOUDINARY_URL is set but could not be parsed ({}). Falling back to local disk storage for review media. "
+          + "Expected format: cloudinary://<api_key>:<api_secret>@<cloud_name>",
+        ex.getMessage()
+      );
+      return null;
     }
   }
 
