@@ -36,7 +36,7 @@ public class Product {
   @Min(0)
   private int stock;
 
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "integer not null default 100")
   private int sizeMl = 100;
 
   private boolean active = true;
