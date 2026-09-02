@@ -50,10 +50,10 @@ public class ProductSeedData implements CommandLineRunner {
     // two (Double Apple, Grapemint) are new fragrances only sold at 10 ml.
     // These are separate purchasable products, not part of the 100 ml
     // launch-offer gift pool.
-    save("Crown Voyage · 10 ml", "fresh", "The same bold Crown Voyage trail of bergamot, green apple, lime, and blackcurrant, in a travel-ready 10 ml bottle.", "399.00", "assets/crown-voyage-10ml.jpg", 60, 10);
-    save("Blooming Élise · 10 ml", "floral", "The same graceful Blooming Élise pink rose and soft petals, in a travel-ready 10 ml bottle.", "399.00", "assets/blooming-elise-10ml.jpg", 60, 10);
-    save("Double Apple · 10 ml", "gourmand", "Crisp red and green apple layered over warm spice and a soft tobacco-leaf base. A juicy, sweet signature in a travel-ready 10 ml bottle.", "349.00", "assets/double-apple-10ml.jpg", 55, 10);
-    save("Grapemint · 10 ml", "fresh", "Sun-ripened green grapes brightened with cool mint and a whisper of citrus. A crisp, fruity signature in a travel-ready 10 ml bottle.", "349.00", "assets/grapemint-10ml.jpg", 55, 10);
+    save("Crown Voyage · 10 ml", "fresh", "The same bold Crown Voyage trail of bergamot, green apple, lime, and blackcurrant, in a travel-ready 10 ml bottle.", "299.00", "assets/crown-voyage-10ml.jpg", 60, 10);
+    save("Blooming Élise · 10 ml", "floral", "The same graceful Blooming Élise pink rose and soft petals, in a travel-ready 10 ml bottle.", "299.00", "assets/blooming-elise-10ml.jpg", 60, 10);
+    save("Double Apple · 10 ml", "gourmand", "Crisp red and green apple layered over warm spice and a soft tobacco-leaf base. A juicy, sweet signature in a travel-ready 10 ml bottle.", "299.00", "assets/double-apple-10ml.jpg", 55, 10);
+    save("Grapemint · 10 ml", "fresh", "Sun-ripened green grapes brightened with cool mint and a whisper of citrus. A crisp, fruity signature in a travel-ready 10 ml bottle.", "299.00", "assets/grapemint-10ml.jpg", 55, 10);
   }
 
   private void save(

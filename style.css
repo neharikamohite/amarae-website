@@ -163,6 +163,26 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
 .site-footer-expanded small { width: 100%; }
 .footer-links { display: flex !important; flex-wrap: wrap; gap: 12px; }
 
+.contact-icons { display: flex !important; flex-wrap: wrap; gap: 10px; }
+.contact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--clay);
+  background: rgba(255, 255, 255, 0.6);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.contact-icon svg { width: 17px; height: 17px; }
+.contact-icon:hover {
+  background: var(--clay);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -319,6 +339,28 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
   object-position: 46% 50%;
   box-shadow: 0 34px 72px rgba(43, 32, 23, 0.22);
   animation: floatEffect 5s ease-in-out infinite;
+}
+
+.home-hero-banner {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 40px 5% 60px;
+}
+
+.hero-banner-img {
+  width: 100%;
+  max-width: 1400px;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 34px 72px rgba(43, 32, 23, 0.22);
+}
+
+.hero-banner-actions {
+  margin-top: 0;
+  justify-content: center;
 }
 
 .quick-commerce article,

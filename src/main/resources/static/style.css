@@ -163,6 +163,26 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
 .site-footer-expanded small { width: 100%; }
 .footer-links { display: flex !important; flex-wrap: wrap; gap: 12px; }
 
+.contact-icons { display: flex !important; flex-wrap: wrap; gap: 10px; }
+.contact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--clay);
+  background: rgba(255, 255, 255, 0.6);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.contact-icon svg { width: 17px; height: 17px; }
+.contact-icon:hover {
+  background: var(--clay);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -319,6 +339,28 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
   object-position: 46% 50%;
   box-shadow: 0 34px 72px rgba(43, 32, 23, 0.22);
   animation: floatEffect 5s ease-in-out infinite;
+}
+
+.home-hero-banner {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 40px 5% 60px;
+}
+
+.hero-banner-img {
+  width: 100%;
+  max-width: 1400px;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 34px 72px rgba(43, 32, 23, 0.22);
+}
+
+.hero-banner-actions {
+  margin-top: 0;
+  justify-content: center;
 }
 
 .quick-commerce article,
@@ -953,136 +995,6 @@ body.modal-open {
   line-height: 1.5;
 }
 
-.rating-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--clay);
-  margin: 4px 0;
-}
-
-.rating-pill em {
-  font-style: normal;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.rating-pill.muted {
-  color: var(--muted);
-}
-
-.reviews-list {
-  display: grid;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.review-card {
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.55);
-}
-
-.review-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.review-card-head .stars {
-  color: var(--gold);
-  letter-spacing: 2px;
-}
-
-.review-date {
-  display: block;
-  color: var(--muted);
-  font-size: 0.72rem;
-  margin-top: 2px;
-}
-
-.review-comment {
-  margin-top: 8px;
-  color: var(--ink);
-  line-height: 1.55;
-  font-size: 0.9rem;
-}
-
-.review-media {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.review-media-item {
-  width: 84px;
-  height: 84px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-}
-
-.review-form {
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-  display: grid;
-  gap: 10px;
-}
-
-.review-form-title {
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.star-picker {
-  display: flex;
-  gap: 6px;
-}
-
-.star-pick {
-  background: none;
-  border: none;
-  font-size: 1.6rem;
-  line-height: 1;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0;
-}
-
-.star-pick.active {
-  color: var(--gold);
-}
-
-.review-form textarea {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--ink);
-  resize: vertical;
-  font-family: inherit;
-}
-
-.review-upload-label {
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.review-form-note {
-  margin: 0;
-  color: var(--clay);
-  font-size: 0.8rem;
-}
-
 @media (max-width: 760px) {
   .modal-body {
     grid-template-columns: 1fr;
@@ -1190,25 +1102,6 @@ body.modal-open {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-top: 20px;
-}
-
-.checkout-form .span-3 {
-  grid-column: 1 / -1;
-}
-
-.checkout-india-note {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.cart-summary-sub {
-  padding-top: 0;
-  border-top: none;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: none;
-  color: var(--muted);
 }
 
 .checkout-btn {
