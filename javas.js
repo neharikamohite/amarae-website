@@ -8,12 +8,16 @@ window.addEventListener("load", () => {
   let activeSearch = "";
 
   const fallbackProducts = [
-    perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40),
-    perfume(102, "Wild Sovereign", "woody", "Citrus bergamot and lavender settle into warm amber woods, wild, untamed, and free.", 1499, "assets/wild-sovereign.jpg", 35),
-    perfume(103, "Royal White Oud", "luxury", "Saffron and rose petals wrapped around smooth white oud, for an opulent, refined, timeless evening trail.", 1499, "assets/royal-white-oud.jpg", 30),
-    perfume(104, "Golden Liberté", "warm", "Orange blossom, lavender, and Madagascar vanilla for a poignant, sensual warmth that lingers.", 1499, "assets/golden-liberte.jpg", 32),
-    perfume(105, "Blooming Élise", "floral", "Pink rose and soft petals for a graceful, blooming floral signature.", 1499, "assets/blooming-elise.jpg", 38),
-    perfume(106, "Crystal Ember", "luxury", "Saffron threads, white flowers, and warm sandalwood for a radiant, addictive glow.", 1499, "assets/crystal-ember.jpg", 28),
+    perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40, 100),
+    perfume(102, "Wild Sovereign", "woody", "Citrus bergamot and lavender settle into warm amber woods, wild, untamed, and free.", 1499, "assets/wild-sovereign.jpg", 35, 100),
+    perfume(103, "Royal White Oud", "luxury", "Saffron and rose petals wrapped around smooth white oud, for an opulent, refined, timeless evening trail.", 1499, "assets/royal-white-oud.jpg", 30, 100),
+    perfume(104, "Golden Liberté", "warm", "Orange blossom, lavender, and Madagascar vanilla for a poignant, sensual warmth that lingers.", 1499, "assets/golden-liberte.jpg", 32, 100),
+    perfume(105, "Blooming Élise", "floral", "Pink rose and soft petals for a graceful, blooming floral signature.", 1499, "assets/blooming-elise.jpg", 38, 100),
+    perfume(106, "Crystal Ember", "luxury", "Saffron threads, white flowers, and warm sandalwood for a radiant, addictive glow.", 1499, "assets/crystal-ember.jpg", 28, 100),
+    perfume(107, "Crown Voyage · 10 ml", "fresh", "The same bold Crown Voyage trail of bergamot, green apple, lime, and blackcurrant, in a travel-ready 10 ml bottle.", 399, "assets/crown-voyage-10ml.jpg", 60, 10),
+    perfume(108, "Blooming Élise · 10 ml", "floral", "The same graceful Blooming Élise pink rose and soft petals, in a travel-ready 10 ml bottle.", 399, "assets/blooming-elise-10ml.jpg", 60, 10),
+    perfume(109, "Double Apple · 10 ml", "gourmand", "Crisp red and green apple layered over warm spice and a soft tobacco-leaf base. A juicy, sweet signature in a travel-ready 10 ml bottle.", 349, "assets/double-apple-10ml.jpg", 55, 10),
+    perfume(110, "Grapemint · 10 ml", "fresh", "Sun-ripened green grapes brightened with cool mint and a whisper of citrus. A crisp, fruity signature in a travel-ready 10 ml bottle.", 349, "assets/grapemint-10ml.jpg", 55, 10),
   ];
 
   moveCursorAura();
@@ -21,9 +25,10 @@ window.addEventListener("load", () => {
   initQuiz();
   initShop();
   initRealtime();
+  initProductModal();
 
-  function perfume(id, name, category, description, price, imageUrl, stock) {
-    return { id, name, category, description, price, imageUrl, stock };
+  function perfume(id, name, category, description, price, imageUrl, stock, sizeMl) {
+    return { id, name, category, description, price, imageUrl, stock, sizeMl };
   }
 
   function getSessionId() {
@@ -100,11 +105,20 @@ window.addEventListener("load", () => {
         }, 220);
       }
 
-      if (video && items[index].dataset.vid) {
+      const nextVid = items[index].dataset.vid;
+      const resolvedNext = nextVid ? new URL(nextVid, document.baseURI).href : null;
+      // Only reload the <video> element when the target clip actually changes.
+      // Reloading on every rotation (even to the same clip) was restarting
+      // playback from 0 each time, so the video never played past its first
+      // few seconds. Comparing against currentSrc lets the same clip keep
+      // playing continuously through its full length while the showcase
+      // label/thumbnail still rotates normally.
+      if (video && resolvedNext && video.currentSrc !== resolvedNext) {
         video.classList.add("slide-out");
         setTimeout(() => {
-          video.src = items[index].dataset.vid;
+          video.src = nextVid;
           video.load();
+          video.play().catch(() => {});
           video.classList.remove("slide-out");
           video.classList.add("slide-in-start");
           void video.offsetWidth;
@@ -205,30 +219,119 @@ window.addEventListener("load", () => {
       : '<div class="empty-state">No perfume matched that search. Try rose, fresh, oud, warm, or vanilla.</div>';
     attachCartButtons();
     attachWishlistButtons();
+    attachCardOpenHandlers();
   }
 
+  // Card shows only what's needed to browse and compare at a glance: image,
+  // name, category, and price. Full description, notes, stock, and reviews
+  // live on the detail view so they're not dumped straight into the grid.
   function productCardTemplate(product) {
     const wished = getWishlist().includes(String(product.id));
     return `
-      <article class="collection-card product-card fade-up" data-category="${escapeHtml(product.category)}">
+      <article class="collection-card product-card fade-up" data-category="${escapeHtml(product.category)}" data-product-id="${product.id}" tabindex="0" role="button" aria-label="View details for ${escapeHtml(product.name)}">
         <button class="wish-btn ${wished ? "active" : ""}" type="button" data-product-id="${product.id}" aria-label="Save ${escapeHtml(product.name)}">♡</button>
+        <span class="size-pill">${product.sizeMl} ML</span>
         <img src="${escapeHtml(product.imageUrl)}" class="bottle-png" alt="${escapeHtml(product.name)}" />
         <div class="product-meta">
           <span>${categoryLabel(product.category)}</span>
           <strong>${formatMoney(product.price)}</strong>
         </div>
         <h3>${escapeHtml(product.name)}</h3>
-        <p>${escapeHtml(product.description)}</p>
-        <div class="product-details"><span>100 ml · Eau de Parfum</span><span>Notes: ${escapeHtml(productNotes(product.name))}</span></div>
-        <div class="product-promises">
-          <span>${product.stock > 20 ? "In stock" : "Limited stock"}</span>
-          <span>MRP ${formatMoney(product.price)}</span>
-        </div>
+        <p class="card-hint">Tap to view full details, notes, and reviews</p>
         <button class="add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
           ${product.stock > 0 ? "Add to cart" : "Sold out"}
         </button>
       </article>
     `;
+  }
+
+  function attachCardOpenHandlers() {
+    document.querySelectorAll(".product-card").forEach((card) => {
+      const open = (event) => {
+        if (event.target.closest(".wish-btn") || event.target.closest(".add-cart")) return;
+        openProductModal(card.dataset.productId);
+      };
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open(event);
+        }
+      });
+    });
+  }
+
+  function openProductModal(productId) {
+    const product = activeProducts.find((item) => String(item.id) === String(productId));
+    const modal = document.getElementById("productModal");
+    const modalBody = document.getElementById("productModalBody");
+    if (!product || !modal || !modalBody) return;
+
+    const wished = getWishlist().includes(String(product.id));
+    modalBody.innerHTML = `
+      <div class="modal-image-stage">
+        <img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" />
+      </div>
+      <div class="modal-details">
+        <div class="modal-top-row">
+          <span class="modal-category">${categoryLabel(product.category)}</span>
+          <button class="wish-btn modal-wish ${wished ? "active" : ""}" type="button" data-product-id="${product.id}" aria-label="Save ${escapeHtml(product.name)}">♡</button>
+        </div>
+        <h2>${escapeHtml(product.name)}</h2>
+        <div class="modal-rating">${ratingTemplate()}</div>
+        <strong class="modal-price">${formatMoney(product.price)}</strong>
+        <p class="modal-description">${escapeHtml(product.description)}</p>
+        <div class="modal-fact-grid">
+          <div><span>Size</span><strong>${product.sizeMl} ml · Eau de Parfum</strong></div>
+          <div><span>Notes</span><strong>${escapeHtml(productNotes(product.name))}</strong></div>
+          <div><span>Availability</span><strong>${product.stock > 20 ? "In stock" : product.stock > 0 ? "Limited stock" : "Sold out"}</strong></div>
+          <div><span>MRP</span><strong>${formatMoney(product.price)}</strong></div>
+        </div>
+        <button class="primary-btn modal-add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
+          ${product.stock > 0 ? "Add to cart" : "Sold out"}
+        </button>
+        <section class="modal-reviews">
+          <h3>Ratings &amp; Reviews</h3>
+          <p class="modal-reviews-empty">This is a new launch fragrance, so there are no customer reviews yet. Be the first to try it and share your rating.</p>
+        </section>
+      </div>
+    `;
+
+    modal.classList.add("open");
+    document.body.classList.add("modal-open");
+    attachCartButtons();
+    attachWishlistButtons();
+
+    modalBody.querySelector(".modal-add-cart")?.addEventListener("click", () => {
+      document.querySelector(`.add-cart[data-product-id="${product.id}"]`)?.click();
+    });
+  }
+
+  // Honest placeholder: outlined stars + "no reviews yet" rather than a
+  // fabricated rating, since these are newly launched fragrances with no
+  // real customer reviews to show.
+  function ratingTemplate() {
+    return `
+      <span class="stars" aria-hidden="true">${"☆".repeat(5)}</span>
+      <span class="rating-label">No ratings yet</span>
+    `;
+  }
+
+  function closeProductModal() {
+    const modal = document.getElementById("productModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    document.body.classList.remove("modal-open");
+  }
+
+  function initProductModal() {
+    const modal = document.getElementById("productModal");
+    if (!modal) return;
+    modal.querySelector(".modal-backdrop")?.addEventListener("click", closeProductModal);
+    modal.querySelector(".modal-close")?.addEventListener("click", closeProductModal);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeProductModal();
+    });
   }
 
   function productNotes(name) {
@@ -239,6 +342,10 @@ window.addEventListener("load", () => {
       "Golden Liberté": "orange blossom · lavender · vanilla",
       "Blooming Élise": "pink rose · soft petals",
       "Crystal Ember": "saffron · white flowers · sandalwood",
+      "Crown Voyage · 10 ml": "bergamot · green apple · lime · blackcurrant",
+      "Blooming Élise · 10 ml": "pink rose · soft petals",
+      "Double Apple · 10 ml": "red apple · green apple · clove · tobacco leaf",
+      "Grapemint · 10 ml": "green grape · mint · citrus",
     };
     return notes[name] || "details coming soon";
   }
@@ -339,20 +446,22 @@ window.addEventListener("load", () => {
     const offer = document.getElementById("cartOffer");
     const select = document.getElementById("complimentaryMini");
     if (!offer) return;
-    const eligible = items.some((item) => item.quantity > 0);
-    offer.textContent = eligible
-      ? "Launch offer unlocked: choose a different 10 ml fragrance at checkout. The complimentary mini will be confirmed with your order."
-      : "Add a 100 ml fragrance to unlock your complimentary different 10 ml scent.";
+    // The gift only triggers off a 100 ml fragrance in the cart — a 10 ml
+    // travel bottle on its own should not unlock a free 100 ml gift.
+    giftEligible = items.some((item) => item.sizeMl === 100 && item.quantity > 0);
+    offer.textContent = giftEligible
+      ? "Launch offer unlocked: choose a different 100 ml fragrance at checkout. The complimentary bottle will be confirmed with your order."
+      : "Add a 100 ml fragrance to unlock your complimentary different 100 ml bottle.";
     if (select) {
-      select.disabled = !eligible;
+      select.disabled = !giftEligible;
       const cartProductIds = new Set(items.map((item) => String(item.productId)));
       const options = activeProducts
-        .filter((product) => !cartProductIds.has(String(product.id)) && product.stock > 0)
-        .map((product) => `<option value="${product.id}">${escapeHtml(product.name)} — complimentary 10 ml</option>`)
+        .filter((product) => product.sizeMl === 100 && !cartProductIds.has(String(product.id)) && product.stock > 0)
+        .map((product) => `<option value="${product.id}">${escapeHtml(product.name)} — complimentary 100 ml</option>`)
         .join("");
-      select.innerHTML = eligible
-        ? `<option value="">Choose your complimentary mini</option>${options}`
-        : '<option value="">Add a fragrance to unlock this selection</option>';
+      select.innerHTML = giftEligible
+        ? `<option value="">Choose your complimentary bottle</option>${options}`
+        : '<option value="">Add a 100 ml fragrance to unlock this selection</option>';
     }
   }
 
@@ -362,7 +471,7 @@ window.addEventListener("load", () => {
         <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" />
         <div>
           <h4>${escapeHtml(item.name)}</h4>
-          <span>${formatMoney(item.price)} each</span>
+          <span>${formatMoney(item.price)} each · ${item.sizeMl} ml</span>
         </div>
         <div class="qty-controls" aria-label="Quantity controls">
           <button type="button" data-action="decrease" aria-label="Decrease ${escapeHtml(item.name)}">-</button>
@@ -402,7 +511,7 @@ window.addEventListener("load", () => {
       };
 
       if (!payload.complimentaryMiniProductId) {
-        showCheckoutNote("Choose your complimentary different 10 ml fragrance before proceeding to payment.");
+        showCheckoutNote("Choose your complimentary different 100 ml fragrance before proceeding to payment.");
         return;
       }
 

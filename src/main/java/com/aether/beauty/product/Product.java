@@ -36,6 +36,9 @@ public class Product {
   @Min(0)
   private int stock;
 
+  @Column(nullable = false)
+  private int sizeMl = 100;
+
   private boolean active = true;
 
   private Instant updatedAt = Instant.now();
@@ -94,6 +97,14 @@ public class Product {
 
   public void setStock(int stock) {
     this.stock = stock;
+  }
+
+  public int getSizeMl() {
+    return sizeMl;
+  }
+
+  public void setSizeMl(int sizeMl) {
+    this.sizeMl = sizeMl;
   }
 
   public boolean isActive() {

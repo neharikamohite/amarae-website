@@ -9,5 +9,6 @@ public record CartItemDto(
   BigDecimal price,
   String imageUrl,
   int quantity,
-  BigDecimal lineTotal
+  BigDecimal lineTotal,
+  int sizeMl
 ) {}

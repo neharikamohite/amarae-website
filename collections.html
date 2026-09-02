@@ -24,7 +24,7 @@
     </header>
 
     <main class="shop-page">
-      <section class="launch-banner" aria-label="Launch offer"><strong>Launch offer</strong><span>Buy one 100 ml fragrance and receive a complimentary 10 ml fragrance of a different scent. Limited launch allocation.</span></section>
+      <section class="launch-banner" aria-label="Launch offer"><strong>Launch offer</strong><span>Buy one 100 ml fragrance and receive a complimentary 100 ml fragrance of a different scent. Limited launch allocation.</span></section>
       <section class="shop-hero">
         <div>
           <h1>10 fragrances, one easy store.</h1>
@@ -52,6 +52,7 @@
           <button class="filter-chip" data-filter="warm">Warm</button>
           <button class="filter-chip" data-filter="woody">Woody</button>
           <button class="filter-chip" data-filter="luxury">Luxury</button>
+          <button class="filter-chip" data-filter="gourmand">Sweet</button>
         </div>
       </section>
 
@@ -67,8 +68,8 @@
           <a class="secondary-btn compact" href="findFragrance.html">Need help choosing?</a>
         </div>
         <div class="cart-items" id="cartItems"></div>
-        <div class="cart-offer" id="cartOffer">Add a 100 ml fragrance to unlock your complimentary different 10 ml scent.</div>
-        <label class="mini-choice" for="complimentaryMini">Complimentary 10 ml fragrance (must be different from your cart)</label>
+        <div class="cart-offer" id="cartOffer">Add a 100 ml fragrance to unlock your complimentary different 100 ml scent.</div>
+        <label class="mini-choice" for="complimentaryMini">Complimentary 100 ml fragrance (must be different from your cart)</label>
         <select id="complimentaryMini" disabled><option value="">Add a fragrance to unlock this selection</option></select>
         <div class="cart-summary">
           <span>Total</span>
@@ -83,6 +84,14 @@
         <p class="checkout-note" id="checkoutNote"></p>
       </section>
     </main>
+
+    <div class="product-modal" id="productModal" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Product details">
+        <button class="modal-close" type="button" aria-label="Close product details">✕</button>
+        <div class="modal-body" id="productModalBody"></div>
+      </div>
+    </div>
 
     <footer class="site-footer site-footer-expanded">
       <div><strong>AMARAÈ Formulations</strong><span>Kalpataru Park Apartment, Unit No. 14, Kalanagar, Madhavnagar Road, Sangli 416416, Maharashtra, India</span></div>

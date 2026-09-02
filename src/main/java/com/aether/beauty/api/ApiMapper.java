@@ -22,7 +22,8 @@ public class ApiMapper {
       product.getDescription(),
       product.getPrice(),
       product.getImageUrl(),
-      product.getStock()
+      product.getStock(),
+      product.getSizeMl()
     );
   }
 
@@ -47,7 +48,8 @@ public class ApiMapper {
       product.getPrice(),
       product.getImageUrl(),
       item.getQuantity(),
-      lineTotal
+      lineTotal,
+      product.getSizeMl()
     );
   }
 
@@ -55,7 +57,7 @@ public class ApiMapper {
     List<OrderLineDto> lines = order
       .getLines()
       .stream()
-      .map(line -> new OrderLineDto(line.getProductName(), line.getUnitPrice(), line.getQuantity()))
+      .map(line -> new OrderLineDto(line.getProductName(), line.getUnitPrice(), line.getQuantity(), line.getProduct().getSizeMl()))
       .toList();
     return new OrderDto(
       order.getId(),

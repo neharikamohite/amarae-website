@@ -763,6 +763,205 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
   cursor: not-allowed;
 }
 
+.product-card {
+  cursor: pointer;
+}
+
+.product-card:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 3px;
+}
+
+.card-hint {
+  margin-top: auto;
+  padding-top: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+/* Product detail modal */
+.product-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+}
+
+.product-modal.open {
+  display: block;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 23, 21, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modal-panel {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  width: min(92vw, 960px);
+  max-height: 88vh;
+  margin: 6vh auto;
+  overflow-y: auto;
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(24, 23, 21, 0.4);
+  padding: 20px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+}
+
+.modal-body {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+.modal-image-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(233, 240, 236, 0.5);
+  border-radius: 10px;
+  padding: 16px;
+  min-height: 320px;
+}
+
+.modal-image-stage img {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.modal-details h2 {
+  margin: 10px 0 6px;
+  font-size: 1.7rem;
+}
+
+.modal-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-category {
+  color: var(--clay);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.modal-wish {
+  position: static;
+}
+
+.modal-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modal-rating .stars {
+  color: var(--gold);
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+}
+
+.modal-rating .rating-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.modal-price {
+  display: block;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+
+.modal-description {
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.modal-fact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.modal-fact-grid div {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.modal-fact-grid span {
+  display: block;
+  color: var(--clay);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.modal-add-cart {
+  width: 100%;
+}
+
+.modal-reviews {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.modal-reviews h3 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.modal-reviews-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-panel {
+    margin: 4vh auto;
+    padding: 16px;
+  }
+}
+
 .empty-state,
 .cart-empty {
   grid-column: 1 / -1;
@@ -1014,6 +1213,24 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, #fff, var(--gold) 38%, var(--clay));
   box-shadow: 0 14px 24px rgba(24, 23, 21, 0.16);
+}
+
+/* Distinct colors per fragrance family so the note symbols are no longer
+   all rendered in the same gold/clay tone. */
+.ball-fresh {
+  background: radial-gradient(circle at 32% 28%, #f1fbf6, #6fbf9a 42%, #2f6f57);
+}
+
+.ball-floral {
+  background: radial-gradient(circle at 32% 28%, #fff3f7, #f0a6c0 42%, #b95c78);
+}
+
+.ball-warm {
+  background: radial-gradient(circle at 32% 28%, #fff8ec, #f0b95a 42%, #c76b2f);
+}
+
+.ball-luxury {
+  background: radial-gradient(circle at 32% 28%, #f2e9ff, #8a5cc7 42%, #3d1f63);
 }
 
 .molecule h5 {
