@@ -237,12 +237,20 @@ window.addEventListener("load", () => {
           <strong>${formatMoney(product.price)}</strong>
         </div>
         <h3>${escapeHtml(product.name)}</h3>
+        <div class="card-rating">${cardRatingTemplate(product)}</div>
         <p class="card-hint">Tap to view full details, notes, and reviews</p>
         <button class="add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
           ${product.stock > 0 ? "Add to cart" : "Sold out"}
         </button>
       </article>
     `;
+  }
+
+  function cardRatingTemplate(product) {
+    const count = product.reviewCount || 0;
+    if (count === 0) return `<span class="rating-pill muted">No ratings yet</span>`;
+    const avg = product.avgRating || 0;
+    return `<span class="rating-pill">★ ${avg.toFixed(1)} <em>(${count})</em></span>`;
   }
 
   function attachCardOpenHandlers() {
@@ -271,14 +279,14 @@ window.addEventListener("load", () => {
     modalBody.innerHTML = `
       <div class="modal-image-stage">
         <img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" />
+        <button class="wish-btn modal-wish ${wished ? "active" : ""}" type="button" data-product-id="${product.id}" aria-label="Save ${escapeHtml(product.name)}">♡</button>
       </div>
       <div class="modal-details">
         <div class="modal-top-row">
           <span class="modal-category">${categoryLabel(product.category)}</span>
-          <button class="wish-btn modal-wish ${wished ? "active" : ""}" type="button" data-product-id="${product.id}" aria-label="Save ${escapeHtml(product.name)}">♡</button>
         </div>
         <h2>${escapeHtml(product.name)}</h2>
-        <div class="modal-rating">${ratingTemplate()}</div>
+        <div class="modal-rating">${ratingTemplate(product)}</div>
         <strong class="modal-price">${formatMoney(product.price)}</strong>
         <p class="modal-description">${escapeHtml(product.description)}</p>
         <div class="modal-fact-grid">
@@ -290,9 +298,10 @@ window.addEventListener("load", () => {
         <button class="primary-btn modal-add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
           ${product.stock > 0 ? "Add to cart" : "Sold out"}
         </button>
-        <section class="modal-reviews">
+        <section class="modal-reviews" id="modalReviews" data-product-id="${product.id}">
           <h3>Ratings &amp; Reviews</h3>
-          <p class="modal-reviews-empty">This is a new launch fragrance, so there are no customer reviews yet. Be the first to try it and share your rating.</p>
+          <div class="reviews-list" id="reviewsList"><p class="modal-reviews-empty">Loading reviews...</p></div>
+          ${reviewFormTemplate()}
         </section>
       </div>
     `;
@@ -301,19 +310,164 @@ window.addEventListener("load", () => {
     document.body.classList.add("modal-open");
     attachCartButtons();
     attachWishlistButtons();
+    attachReviewForm(product.id);
+    loadReviews(product.id);
 
     modalBody.querySelector(".modal-add-cart")?.addEventListener("click", () => {
       document.querySelector(`.add-cart[data-product-id="${product.id}"]`)?.click();
     });
   }
 
-  // Honest placeholder: outlined stars + "no reviews yet" rather than a
-  // fabricated rating, since these are newly launched fragrances with no
-  // real customer reviews to show.
-  function ratingTemplate() {
+  function reviewFormTemplate() {
     return `
-      <span class="stars" aria-hidden="true">${"☆".repeat(5)}</span>
-      <span class="rating-label">No ratings yet</span>
+      <form class="review-form" id="reviewForm" enctype="multipart/form-data">
+        <p class="review-form-title">Share your rating</p>
+        <div class="star-picker" id="starPicker" role="radiogroup" aria-label="Choose a rating">
+          ${[1, 2, 3, 4, 5]
+            .map(
+              (n) =>
+                `<button type="button" class="star-pick" data-value="${n}" aria-label="${n} star${n === 1 ? "" : "s"}">☆</button>`
+            )
+            .join("")}
+        </div>
+        <input type="text" id="reviewName" placeholder="Your name" aria-label="Your name" required />
+        <textarea id="reviewComment" placeholder="Tell other shoppers what you think (optional)" aria-label="Your review" rows="3"></textarea>
+        <label class="review-upload-label" for="reviewFiles">Add photos or a video (optional, up to 6 files)</label>
+        <input type="file" id="reviewFiles" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" multiple />
+        <button type="button" class="secondary-btn compact" id="reviewSubmitBtn">Post review</button>
+        <p class="review-form-note" id="reviewFormNote"></p>
+      </form>
+    `;
+  }
+
+  function reviewMediaTemplate(item) {
+    return (item.media || [])
+      .map((m) =>
+        m.mediaType === "VIDEO"
+          ? `<video src="${escapeHtml(m.url)}" class="review-media-item" controls muted></video>`
+          : `<img src="${escapeHtml(m.url)}" class="review-media-item" alt="Customer photo" />`
+      )
+      .join("");
+  }
+
+  function reviewCardTemplate(item) {
+    const stars = "★".repeat(item.rating) + "☆".repeat(5 - item.rating);
+    const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+    return `
+      <article class="review-card">
+        <div class="review-card-head">
+          <strong>${escapeHtml(item.customerName)}</strong>
+          <span class="stars filled" aria-hidden="true">${stars}</span>
+        </div>
+        ${date ? `<span class="review-date">${date}</span>` : ""}
+        ${item.comment ? `<p class="review-comment">${escapeHtml(item.comment)}</p>` : ""}
+        ${item.media && item.media.length ? `<div class="review-media">${reviewMediaTemplate(item)}</div>` : ""}
+      </article>
+    `;
+  }
+
+  async function loadReviews(productId) {
+    const list = document.getElementById("reviewsList");
+    if (!list) return;
+    try {
+      const reviews = await api(`/api/products/${productId}/reviews`);
+      list.innerHTML = reviews.length
+        ? reviews.map(reviewCardTemplate).join("")
+        : '<p class="modal-reviews-empty">This is a new launch fragrance, so there are no customer reviews yet. Be the first to try it and share your rating.</p>';
+    } catch (error) {
+      list.innerHTML = '<p class="modal-reviews-empty">Reviews will appear here once the live store is connected.</p>';
+    }
+  }
+
+  function attachReviewForm(productId) {
+    let selectedRating = 0;
+    const picker = document.getElementById("starPicker");
+    const stars = picker ? Array.from(picker.querySelectorAll(".star-pick")) : [];
+
+    function paintStars(value) {
+      stars.forEach((btn) => {
+        const on = Number(btn.dataset.value) <= value;
+        btn.textContent = on ? "★" : "☆";
+        btn.classList.toggle("active", on);
+      });
+    }
+
+    stars.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedRating = Number(btn.dataset.value);
+        paintStars(selectedRating);
+      });
+    });
+
+    document.getElementById("reviewSubmitBtn")?.addEventListener("click", async () => {
+      const note = document.getElementById("reviewFormNote");
+      const name = document.getElementById("reviewName")?.value.trim();
+      const comment = document.getElementById("reviewComment")?.value.trim();
+      const fileInput = document.getElementById("reviewFiles");
+      const files = fileInput?.files ? Array.from(fileInput.files) : [];
+
+      if (!name) {
+        if (note) note.textContent = "Please enter your name.";
+        return;
+      }
+      if (!selectedRating) {
+        if (note) note.textContent = "Please choose a star rating.";
+        return;
+      }
+      if (files.length > 6) {
+        if (note) note.textContent = "You can attach up to 6 photos/videos.";
+        return;
+      }
+
+      const submitBtn = document.getElementById("reviewSubmitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Posting...";
+
+      const formData = new FormData();
+      formData.append("customerName", name);
+      formData.append("rating", String(selectedRating));
+      if (comment) formData.append("comment", comment);
+      files.forEach((file) => formData.append("files", file));
+
+      try {
+        const response = await fetch(`/api/products/${productId}/reviews`, {
+          method: "POST",
+          headers: { "X-Aether-Session": sessionId },
+          body: formData,
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.error || "Could not post your review.");
+        }
+        if (note) note.textContent = "Thanks — your review is live.";
+        await loadReviews(productId);
+        await loadProducts();
+      } catch (error) {
+        if (note) note.textContent = error.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Post review";
+      }
+    });
+  }
+
+  // Real stars + count when reviews exist; the original honest
+  // "no ratings yet" placeholder still shows for products nobody has
+  // reviewed.
+  function ratingTemplate(product) {
+    const count = product.reviewCount || 0;
+    if (count === 0) {
+      return `
+        <span class="stars" aria-hidden="true">${"☆".repeat(5)}</span>
+        <span class="rating-label">No ratings yet</span>
+      `;
+    }
+    const avg = product.avgRating || 0;
+    const filled = Math.round(avg);
+    const stars = "★".repeat(filled) + "☆".repeat(5 - filled);
+    return `
+      <span class="stars filled" aria-hidden="true">${stars}</span>
+      <span class="rating-label">${avg.toFixed(1)} · ${count} review${count === 1 ? "" : "s"}</span>
     `;
   }
 
@@ -407,10 +561,25 @@ window.addEventListener("load", () => {
     });
   }
 
+  // Kept in sync with the backend defaults in application.properties
+  // (aether.shipping.flat-fee / aether.shipping.free-threshold) purely so
+  // the cart panel can preview a shipping estimate before checkout. The
+  // real number that gets charged always comes from the server response
+  // on /api/orders/checkout.
+  const SHIPPING_FLAT_FEE = 79;
+  const SHIPPING_FREE_THRESHOLD = 1499;
+
+  function estimateShipping(subtotal) {
+    return subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : SHIPPING_FLAT_FEE;
+  }
+
   async function loadCart() {
     const cartCountEls = document.querySelectorAll(".cart-count");
     const cartItemsEl = document.getElementById("cartItems");
     const cartTotalEl = document.getElementById("cartTotal");
+    const cartSubtotalEl = document.getElementById("cartSubtotal");
+    const cartShippingEl = document.getElementById("cartShipping");
+    const cartShippingLabelEl = document.getElementById("cartShippingLabel");
 
     try {
       const cart = await api("/api/cart");
@@ -423,12 +592,24 @@ window.addEventListener("load", () => {
       if (cart.items.length === 0) {
         cartItemsEl.innerHTML = '<div class="cart-empty">Your cart is empty. Add a perfume from the launch collection.</div>';
         cartTotalEl.textContent = formatMoney(0);
+        if (cartSubtotalEl) cartSubtotalEl.textContent = formatMoney(0);
+        if (cartShippingEl) cartShippingEl.textContent = formatMoney(0);
         updateLaunchOffer([]);
         return;
       }
 
       cartItemsEl.innerHTML = cart.items.map(cartRowTemplate).join("");
-      cartTotalEl.textContent = formatMoney(cart.total);
+      const subtotal = Number(cart.total);
+      const shipping = estimateShipping(subtotal);
+      if (cartSubtotalEl) cartSubtotalEl.textContent = formatMoney(subtotal);
+      if (cartShippingEl) cartShippingEl.textContent = shipping === 0 ? "FREE" : formatMoney(shipping);
+      if (cartShippingLabelEl) {
+        cartShippingLabelEl.textContent =
+          shipping === 0
+            ? "Shipping"
+            : `Shipping (free above ${formatMoney(SHIPPING_FREE_THRESHOLD)})`;
+      }
+      cartTotalEl.textContent = formatMoney(subtotal + shipping);
       updateLaunchOffer(cart.items);
       attachCartRowButtons();
     } catch (error) {
@@ -506,11 +687,33 @@ window.addEventListener("load", () => {
         sessionId,
         customerName: document.getElementById("customerName")?.value.trim(),
         email: document.getElementById("customerEmail")?.value.trim(),
-        deliveryCity: document.getElementById("deliveryCity")?.value.trim(),
-        complimentaryMiniProductId: Number(document.getElementById("complimentaryMini")?.value) || null,
+        phone: document.getElementById("customerPhone")?.value.trim(),
+        shippingAddressLine: document.getElementById("shippingAddressLine")?.value.trim(),
+        shippingCity: document.getElementById("shippingCity")?.value.trim(),
+        shippingState: document.getElementById("shippingState")?.value.trim(),
+        shippingPinCode: document.getElementById("shippingPinCode")?.value.trim(),
+        complimentaryProductId: Number(document.getElementById("complimentaryMini")?.value) || null,
       };
 
-      if (!payload.complimentaryMiniProductId) {
+      const required = [
+        "customerName",
+        "email",
+        "phone",
+        "shippingAddressLine",
+        "shippingCity",
+        "shippingState",
+        "shippingPinCode",
+      ];
+      if (required.some((field) => !payload[field])) {
+        showCheckoutNote("Please fill in your name, email, phone, and full delivery address.");
+        return;
+      }
+      if (!/^[1-9][0-9]{5}$/.test(payload.shippingPinCode)) {
+        showCheckoutNote("We currently ship only within India — please enter a valid 6-digit PIN code.");
+        return;
+      }
+
+      if (!payload.complimentaryProductId) {
         showCheckoutNote("Choose your complimentary different 100 ml fragrance before proceeding to payment.");
         return;
       }
@@ -564,6 +767,12 @@ window.addEventListener("load", () => {
       stream.addEventListener("products", loadProducts);
       stream.addEventListener("cart", loadCart);
       stream.addEventListener("orders", loadCart);
+      stream.addEventListener("reviews", (event) => {
+        const openSection = document.getElementById("modalReviews");
+        if (openSection && String(openSection.dataset.productId) === String(event.data)) {
+          loadReviews(event.data);
+        }
+      });
     } catch (error) {
       setRealtimeStatus("Preview mode - backend offline");
     }

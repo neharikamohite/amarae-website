@@ -32,10 +32,29 @@ public class CustomerOrder {
   private String email;
 
   @NotBlank
-  private String deliveryCity;
+  private String shippingAddressLine;
+
+  @NotBlank
+  private String shippingCity;
+
+  @NotBlank
+  private String shippingState;
+
+  @NotBlank
+  private String shippingPinCode;
+
+  @NotBlank
+  private String phone;
+
+  // Fixed for now: AMARAÈ currently ships only within India.
+  private String shippingCountry = "India";
 
   @Enumerated(EnumType.STRING)
   private OrderStatus status = OrderStatus.CREATED;
+
+  private BigDecimal subtotal = BigDecimal.ZERO;
+
+  private BigDecimal shippingFee = BigDecimal.ZERO;
 
   private BigDecimal total = BigDecimal.ZERO;
 
@@ -82,12 +101,52 @@ public class CustomerOrder {
     this.email = email;
   }
 
-  public String getDeliveryCity() {
-    return deliveryCity;
+  public String getShippingAddressLine() {
+    return shippingAddressLine;
   }
 
-  public void setDeliveryCity(String deliveryCity) {
-    this.deliveryCity = deliveryCity;
+  public void setShippingAddressLine(String shippingAddressLine) {
+    this.shippingAddressLine = shippingAddressLine;
+  }
+
+  public String getShippingCity() {
+    return shippingCity;
+  }
+
+  public void setShippingCity(String shippingCity) {
+    this.shippingCity = shippingCity;
+  }
+
+  public String getShippingState() {
+    return shippingState;
+  }
+
+  public void setShippingState(String shippingState) {
+    this.shippingState = shippingState;
+  }
+
+  public String getShippingPinCode() {
+    return shippingPinCode;
+  }
+
+  public void setShippingPinCode(String shippingPinCode) {
+    this.shippingPinCode = shippingPinCode;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getShippingCountry() {
+    return shippingCountry;
+  }
+
+  public void setShippingCountry(String shippingCountry) {
+    this.shippingCountry = shippingCountry;
   }
 
   public OrderStatus getStatus() {
@@ -96,6 +155,22 @@ public class CustomerOrder {
 
   public void setStatus(OrderStatus status) {
     this.status = status;
+  }
+
+  public BigDecimal getSubtotal() {
+    return subtotal;
+  }
+
+  public void setSubtotal(BigDecimal subtotal) {
+    this.subtotal = subtotal;
+  }
+
+  public BigDecimal getShippingFee() {
+    return shippingFee;
+  }
+
+  public void setShippingFee(BigDecimal shippingFee) {
+    this.shippingFee = shippingFee;
   }
 
   public BigDecimal getTotal() {

@@ -8,6 +8,8 @@ import java.util.List;
 public record OrderDto(
   Long id,
   OrderStatus status,
+  BigDecimal subtotal,
+  BigDecimal shippingFee,
   BigDecimal total,
   String paymentProvider,
   String paymentReference,

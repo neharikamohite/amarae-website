@@ -5,9 +5,13 @@ import com.aether.beauty.api.dto.CartItemDto;
 import com.aether.beauty.api.dto.OrderDto;
 import com.aether.beauty.api.dto.OrderLineDto;
 import com.aether.beauty.api.dto.ProductDto;
+import com.aether.beauty.api.dto.ReviewDto;
+import com.aether.beauty.api.dto.ReviewMediaDto;
 import com.aether.beauty.cart.CartItem;
 import com.aether.beauty.order.CustomerOrder;
 import com.aether.beauty.product.Product;
+import com.aether.beauty.review.Review;
+import com.aether.beauty.review.ReviewMedia;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -23,8 +27,31 @@ public class ApiMapper {
       product.getPrice(),
       product.getImageUrl(),
       product.getStock(),
-      product.getSizeMl()
+      product.getSizeMl(),
+      product.getAvgRating(),
+      product.getReviewCount()
     );
+  }
+
+  public ReviewDto toReviewDto(Review review) {
+    List<ReviewMediaDto> media = review
+      .getMedia()
+      .stream()
+      .map(this::toReviewMediaDto)
+      .toList();
+    return new ReviewDto(
+      review.getId(),
+      review.getProduct().getId(),
+      review.getCustomerName(),
+      review.getRating(),
+      review.getComment(),
+      review.getCreatedAt(),
+      media
+    );
+  }
+
+  public ReviewMediaDto toReviewMediaDto(ReviewMedia media) {
+    return new ReviewMediaDto(media.getId(), media.getMediaType().name(), media.getUrl());
   }
 
   public CartDto toCartDto(String sessionId, List<CartItem> items) {
@@ -62,6 +89,8 @@ public class ApiMapper {
     return new OrderDto(
       order.getId(),
       order.getStatus(),
+      order.getSubtotal(),
+      order.getShippingFee(),
       order.getTotal(),
       order.getPaymentProvider(),
       order.getPaymentReference(),

@@ -41,6 +41,12 @@ public class Product {
 
   private boolean active = true;
 
+  @Column(nullable = false, columnDefinition = "double precision not null default 0")
+  private double avgRating = 0;
+
+  @Column(nullable = false, columnDefinition = "integer not null default 0")
+  private int reviewCount = 0;
+
   private Instant updatedAt = Instant.now();
 
   public Long getId() {
@@ -113,6 +119,22 @@ public class Product {
 
   public void setActive(boolean active) {
     this.active = active;
+  }
+
+  public double getAvgRating() {
+    return avgRating;
+  }
+
+  public void setAvgRating(double avgRating) {
+    this.avgRating = avgRating;
+  }
+
+  public int getReviewCount() {
+    return reviewCount;
+  }
+
+  public void setReviewCount(int reviewCount) {
+    this.reviewCount = reviewCount;
   }
 
   public Instant getUpdatedAt() {

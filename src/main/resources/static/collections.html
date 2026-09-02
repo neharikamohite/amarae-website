@@ -36,7 +36,7 @@
         <aside class="delivery-card" aria-label="Delivery and payment details">
           <span id="realtimeStatus">Store connecting...</span>
           <strong>Delivery in 2-4 days</strong>
-          <small>Prepaid checkout. Razorpay is enabled only after live credentials are configured.</small>
+          <small>We currently ship only within India. Prepaid checkout via Razorpay.</small>
         </aside>
       </section>
 
@@ -71,6 +71,14 @@
         <div class="cart-offer" id="cartOffer">Add a 100 ml fragrance to unlock your complimentary different 100 ml scent.</div>
         <label class="mini-choice" for="complimentaryMini">Complimentary 100 ml fragrance (must be different from your cart)</label>
         <select id="complimentaryMini" disabled><option value="">Add a fragrance to unlock this selection</option></select>
+        <div class="cart-summary cart-summary-sub">
+          <span>Subtotal</span>
+          <strong id="cartSubtotal">₹0</strong>
+        </div>
+        <div class="cart-summary cart-summary-sub">
+          <span id="cartShippingLabel">Shipping</span>
+          <strong id="cartShipping">₹0</strong>
+        </div>
         <div class="cart-summary">
           <span>Total</span>
           <strong id="cartTotal">₹0</strong>
@@ -78,8 +86,13 @@
         <form class="checkout-form">
           <input id="customerName" type="text" placeholder="Full name" aria-label="Full name" />
           <input id="customerEmail" type="email" placeholder="Email address" aria-label="Email address" />
-          <input id="deliveryCity" type="text" placeholder="Delivery city and PIN code" aria-label="Delivery city and PIN code" />
-          <button type="button" class="primary-btn checkout-btn">Proceed to secure payment</button>
+          <input id="customerPhone" type="tel" placeholder="Mobile number (10 digits)" aria-label="Mobile number" />
+          <input id="shippingAddressLine" type="text" placeholder="House no., street, locality" aria-label="Delivery address" class="span-3" />
+          <input id="shippingCity" type="text" placeholder="City" aria-label="City" />
+          <input id="shippingState" type="text" placeholder="State" aria-label="State" />
+          <input id="shippingPinCode" type="text" placeholder="PIN code" aria-label="PIN code" inputmode="numeric" />
+          <p class="checkout-india-note span-3">We currently ship only within India.</p>
+          <button type="button" class="primary-btn checkout-btn span-3">Proceed to secure payment</button>
         </form>
         <p class="checkout-note" id="checkoutNote"></p>
       </section>

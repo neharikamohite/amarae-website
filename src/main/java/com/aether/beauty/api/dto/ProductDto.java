@@ -10,5 +10,7 @@ public record ProductDto(
   BigDecimal price,
   String imageUrl,
   int stock,
-  int sizeMl
+  int sizeMl,
+  double avgRating,
+  int reviewCount
 ) {}

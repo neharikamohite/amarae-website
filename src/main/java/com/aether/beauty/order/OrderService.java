@@ -7,6 +7,7 @@ import com.aether.beauty.payment.PaymentService;
 import com.aether.beauty.product.Product;
 import com.aether.beauty.product.ProductService;
 import com.aether.beauty.realtime.RealtimeEventService;
+import com.aether.beauty.shipping.ShippingService;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -21,19 +22,22 @@ public class OrderService {
   private final PaymentService paymentService;
   private final RealtimeEventService realtimeEventService;
   private final ProductService productService;
+  private final ShippingService shippingService;
 
   public OrderService(
     CustomerOrderRepository customerOrderRepository,
     CartService cartService,
     PaymentService paymentService,
     RealtimeEventService realtimeEventService,
-    ProductService productService
+    ProductService productService,
+    ShippingService shippingService
   ) {
     this.customerOrderRepository = customerOrderRepository;
     this.cartService = cartService;
     this.paymentService = paymentService;
     this.realtimeEventService = realtimeEventService;
     this.productService = productService;
+    this.shippingService = shippingService;
   }
 
   public List<CustomerOrder> latestOrders() {
@@ -47,11 +51,19 @@ public class OrderService {
       throw new IllegalStateException("Cart is empty");
     }
 
+    // We only ship inside India right now — reject before payment rather
+    // than accepting an order we can't fulfil.
+    shippingService.requireValidIndianAddress(request.shippingPinCode(), request.phone());
+
     CustomerOrder order = new CustomerOrder();
     order.setSessionId(request.sessionId());
     order.setCustomerName(request.customerName());
     order.setEmail(request.email());
-    order.setDeliveryCity(request.deliveryCity());
+    order.setShippingAddressLine(request.shippingAddressLine());
+    order.setShippingCity(request.shippingCity());
+    order.setShippingState(request.shippingState());
+    order.setShippingPinCode(request.shippingPinCode());
+    order.setPhone(request.phone());
 
     BigDecimal total = BigDecimal.ZERO;
     boolean giftEligible = false;
@@ -110,7 +122,12 @@ public class OrderService {
       throw new IllegalStateException("Add a 100 ml fragrance to your cart to unlock the complimentary gift.");
     }
 
-    order.setTotal(total);
+    // Shipping is charged on the paid subtotal only — the complimentary
+    // gift line above is unit price 0 so it never inflates delivery cost.
+    BigDecimal shippingFee = shippingService.computeShippingFee(total);
+    order.setSubtotal(total);
+    order.setShippingFee(shippingFee);
+    order.setTotal(total.add(shippingFee));
 
     CustomerOrder saved = customerOrderRepository.save(order);
     paymentService.createPayment(saved);

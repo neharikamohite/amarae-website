@@ -271,11 +271,11 @@ window.addEventListener("load", () => {
     modalBody.innerHTML = `
       <div class="modal-image-stage">
         <img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" />
+        <button class="wish-btn modal-wish ${wished ? "active" : ""}" type="button" data-product-id="${product.id}" aria-label="Save ${escapeHtml(product.name)}">♡</button>
       </div>
       <div class="modal-details">
         <div class="modal-top-row">
           <span class="modal-category">${categoryLabel(product.category)}</span>
-          <button class="wish-btn modal-wish ${wished ? "active" : ""}" type="button" data-product-id="${product.id}" aria-label="Save ${escapeHtml(product.name)}">♡</button>
         </div>
         <h2>${escapeHtml(product.name)}</h2>
         <div class="modal-rating">${ratingTemplate()}</div>

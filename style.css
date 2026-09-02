@@ -837,6 +837,7 @@ body.modal-open {
 }
 
 .modal-image-stage {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -851,6 +852,11 @@ body.modal-open {
   height: auto;
   max-height: 70vh;
   object-fit: contain;
+}
+
+.modal-wish {
+  left: 14px;
+  right: auto;
 }
 
 .modal-details h2 {
@@ -870,10 +876,6 @@ body.modal-open {
   font-weight: 800;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-}
-
-.modal-wish {
-  position: static;
 }
 
 .modal-rating {
