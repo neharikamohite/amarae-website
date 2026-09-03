@@ -3,6 +3,7 @@ package com.aether.beauty.api;
 import com.aether.beauty.api.dto.ReviewDto;
 import com.aether.beauty.review.ReviewService;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ public class ReviewController {
   }
 
   @GetMapping
+  @Transactional(readOnly = true)
   public List<ReviewDto> reviews(@PathVariable Long productId) {
     return reviewService.findByProduct(productId).stream().map(apiMapper::toReviewDto).toList();
   }

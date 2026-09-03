@@ -10,6 +10,7 @@ import com.aether.beauty.order.OrderStatus;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,12 +45,14 @@ public class AdminController {
   }
 
   @GetMapping("/orders")
+  @Transactional(readOnly = true)
   public List<AdminOrderDto> orders(@RequestHeader(value = "Authorization", required = false) String authorization) {
     adminAuthService.requireAdmin(AuthController.bearerToken(authorization));
     return orderService.allOrdersMostRecentFirst().stream().map(this::toAdminDto).toList();
   }
 
   @PatchMapping("/orders/{id}")
+  @Transactional
   public AdminOrderDto updateOrder(
     @RequestHeader(value = "Authorization", required = false) String authorization,
     @PathVariable Long id,
