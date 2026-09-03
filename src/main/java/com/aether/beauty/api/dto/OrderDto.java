@@ -9,11 +9,16 @@ public record OrderDto(
   Long id,
   OrderStatus status,
   BigDecimal subtotal,
+  String couponCode,
+  BigDecimal discountAmount,
   BigDecimal shippingFee,
   BigDecimal total,
   String paymentProvider,
   String paymentReference,
   String paymentUrl,
+  String trackingCourier,
+  String trackingNumber,
+  String trackingUrl,
   Instant createdAt,
   List<OrderLineDto> lines
 ) {}

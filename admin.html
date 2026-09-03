@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | AMARAÈ Formulations</title>
+    <meta name="description" content="AMARAÈ order management dashboard." />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="assets/favicon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="logo" href="index.html" aria-label="AMARAÈ home"><img src="assets/amarae_logo_FL.png" alt="AMARAÈ" /></a>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Back to site</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="page-wrap admin-page">
+      <p class="eyebrow">Admin</p>
+      <h1 class="page-title">Order Dashboard</h1>
+
+      <section class="admin-login" id="adminLogin">
+        <form class="auth-form" id="adminLoginForm">
+          <label>
+            Admin password
+            <input id="adminPassword" type="password" placeholder="Admin password" required />
+          </label>
+          <button type="submit" class="primary-btn">Sign in</button>
+          <p class="auth-note" id="adminLoginNote"></p>
+        </form>
+      </section>
+
+      <section class="admin-dashboard" id="adminDashboard" hidden>
+        <div class="admin-toolbar">
+          <span id="adminOrderCount"></span>
+          <button type="button" class="secondary-btn compact" id="adminRefreshBtn">Refresh</button>
+          <button type="button" class="secondary-btn compact" id="adminLogoutBtn">Sign out</button>
+        </div>
+        <div class="admin-order-list" id="adminOrderList">
+          <p class="reviews-empty">Loading orders…</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

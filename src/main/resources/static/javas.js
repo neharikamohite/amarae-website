@@ -6,6 +6,9 @@ window.addEventListener("load", () => {
   let activeProducts = [];
   let activeFilter = "all";
   let activeSearch = "";
+  let activeSort = "recommended";
+  let giftEligible = false;
+  let appliedCoupon = null; // { code, discount } once validated against the cart
 
   const fallbackProducts = [
     perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40, 100),
@@ -41,10 +44,18 @@ window.addEventListener("load", () => {
   }
 
   function headers() {
-    return {
+    const base = {
       "Content-Type": "application/json",
       "X-Aether-Session": sessionId,
     };
+    // Optional: if the shopper is signed in (account.html), this links
+    // whatever order they place to their account so it shows up in their
+    // order history. Guest checkout keeps working with no token at all.
+    const authToken = localStorage.getItem("amaraeAuthToken");
+    if (authToken) {
+      base.Authorization = `Bearer ${authToken}`;
+    }
+    return base;
   }
 
   async function api(path, options = {}) {
@@ -183,7 +194,9 @@ window.addEventListener("load", () => {
   async function initShop() {
     setupFilters();
     setupSearch();
+    setupSort();
     attachCheckout();
+    attachCouponForm();
     await loadProducts();
     await loadCart();
   }
@@ -213,6 +226,7 @@ window.addEventListener("load", () => {
       const searchText = `${product.name} ${product.category} ${product.description}`.toLowerCase();
       return categoryMatch && (!query || searchText.includes(query));
     });
+    sortProducts(products);
 
     productGrid.innerHTML = products.length
       ? products.map(productCardTemplate).join("")
@@ -220,6 +234,29 @@ window.addEventListener("load", () => {
     attachCartButtons();
     attachWishlistButtons();
     attachCardOpenHandlers();
+  }
+
+  // Mutates in place — called right before rendering so search/filter and
+  // sort always compose together instead of one silently overriding the
+  // other.
+  function sortProducts(products) {
+    switch (activeSort) {
+      case "price-asc":
+        products.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case "price-desc":
+        products.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+      case "rating":
+        products.sort((a, b) => (Number(b.avgRating) || 0) - (Number(a.avgRating) || 0));
+        break;
+      case "popularity":
+        products.sort((a, b) => (Number(b.reviewCount) || 0) - (Number(a.reviewCount) || 0));
+        break;
+      default:
+        // "recommended" — keep the server/catalog order as-is.
+        break;
+    }
   }
 
   // Card shows only what's needed to browse and compare at a glance: image,
@@ -654,6 +691,13 @@ window.addEventListener("load", () => {
     });
   }
 
+  function setupSort() {
+    document.getElementById("productSort")?.addEventListener("change", (event) => {
+      activeSort = event.target.value;
+      renderProducts();
+    });
+  }
+
   function attachCartButtons() {
     document.querySelectorAll(".add-cart").forEach((button) => {
       button.onclick = async () => {
@@ -692,13 +736,20 @@ window.addEventListener("load", () => {
       if (!cartItemsEl || !cartTotalEl) return;
       if (cart.items.length === 0) {
         cartItemsEl.innerHTML = '<div class="cart-empty">Your cart is empty. Add a perfume from the launch collection.</div>';
-        cartTotalEl.textContent = formatMoney(0);
+        clearAppliedCoupon();
+        renderCartTotals(0);
         updateLaunchOffer([]);
         return;
       }
 
       cartItemsEl.innerHTML = cart.items.map(cartRowTemplate).join("");
-      cartTotalEl.textContent = formatMoney(cart.total);
+      // A coupon was validated against a specific subtotal — if the cart
+      // has changed since (item added/removed/qty changed), drop it rather
+      // than silently show a stale discount that checkout might reject.
+      if (appliedCoupon && appliedCoupon.subtotal !== cart.total) {
+        clearAppliedCoupon("Cart changed — please re-apply your coupon.");
+      }
+      renderCartTotals(cart.total);
       updateLaunchOffer(cart.items);
       attachCartRowButtons();
     } catch (error) {
@@ -708,8 +759,37 @@ window.addEventListener("load", () => {
       if (cartItemsEl) {
         cartItemsEl.innerHTML = '<div class="cart-empty">Live cart appears here after the backend starts.</div>';
       }
-      if (cartTotalEl) cartTotalEl.textContent = formatMoney(0);
+      renderCartTotals(0);
     }
+  }
+
+  function renderCartTotals(subtotal) {
+    const subtotalEl = document.getElementById("cartSubtotal");
+    const totalEl = document.getElementById("cartTotal");
+    const discountRow = document.getElementById("cartDiscountRow");
+    const discountLabel = document.getElementById("cartDiscountLabel");
+    const discountEl = document.getElementById("cartDiscount");
+
+    if (subtotalEl) subtotalEl.textContent = formatMoney(subtotal);
+
+    const discount = appliedCoupon ? appliedCoupon.discount : 0;
+    if (discountRow) discountRow.hidden = !appliedCoupon;
+    if (appliedCoupon) {
+      if (discountLabel) discountLabel.textContent = `Discount (${appliedCoupon.code})`;
+      if (discountEl) discountEl.textContent = `-${formatMoney(discount)}`;
+    }
+    if (totalEl) totalEl.textContent = formatMoney(Math.max(0, subtotal - discount));
+  }
+
+  function clearAppliedCoupon(message) {
+    appliedCoupon = null;
+    const note = document.getElementById("couponNote");
+    const input = document.getElementById("couponCodeInput");
+    if (note) {
+      note.textContent = message || "";
+      note.classList.remove("error");
+    }
+    if (input) input.disabled = false;
   }
 
   function updateLaunchOffer(items) {
@@ -770,17 +850,62 @@ window.addEventListener("load", () => {
     });
   }
 
+  function attachCouponForm() {
+    const applyBtn = document.getElementById("applyCouponBtn");
+    const input = document.getElementById("couponCodeInput");
+    const note = document.getElementById("couponNote");
+    if (!applyBtn || !input) return;
+
+    applyBtn.addEventListener("click", async () => {
+      const code = input.value.trim();
+      if (!code) {
+        note.textContent = "Enter a coupon code first.";
+        note.classList.add("error");
+        return;
+      }
+
+      applyBtn.disabled = true;
+      applyBtn.textContent = "Checking…";
+      try {
+        const result = await api("/api/coupons/validate", {
+          method: "POST",
+          body: JSON.stringify({ code }),
+        });
+        appliedCoupon = { code: result.code, discount: Number(result.discount), subtotal: Number(result.subtotal) };
+        note.textContent = `"${result.code}" applied — you saved ${formatMoney(result.discount)}.`;
+        note.classList.remove("error");
+        input.disabled = true;
+        renderCartTotals(result.subtotal);
+      } catch (error) {
+        clearAppliedCoupon();
+        note.textContent = error.message;
+        note.classList.add("error");
+      } finally {
+        applyBtn.disabled = false;
+        applyBtn.textContent = "Apply";
+      }
+    });
+  }
+
   function attachCheckout() {
     document.querySelector(".checkout-btn")?.addEventListener("click", async () => {
       const payload = {
         sessionId,
         customerName: document.getElementById("customerName")?.value.trim(),
         email: document.getElementById("customerEmail")?.value.trim(),
-        deliveryCity: document.getElementById("deliveryCity")?.value.trim(),
-        complimentaryMiniProductId: Number(document.getElementById("complimentaryMini")?.value) || null,
+        phone: document.getElementById("customerPhone")?.value.trim(),
+        shippingAddressLine: document.getElementById("shippingAddressLine")?.value.trim(),
+        shippingCity: document.getElementById("shippingCity")?.value.trim(),
+        shippingState: document.getElementById("shippingState")?.value.trim(),
+        shippingPinCode: document.getElementById("shippingPinCode")?.value.trim(),
+        complimentaryProductId: Number(document.getElementById("complimentaryMini")?.value) || null,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
       };
 
-      if (!payload.complimentaryMiniProductId) {
+      // The complimentary-gift selector is only required when the cart
+      // actually earned it — a cart with no 100 ml fragrance in it should
+      // never be blocked waiting on a gift choice it was never offered.
+      if (giftEligible && !payload.complimentaryProductId) {
         showCheckoutNote("Choose your complimentary different 100 ml fragrance before proceeding to payment.");
         return;
       }
@@ -790,6 +915,7 @@ window.addEventListener("load", () => {
           method: "POST",
           body: JSON.stringify(payload),
         });
+        appliedCoupon = null;
         await loadCart();
         showCheckoutNote(`Order #${order.id} is awaiting payment. Your cart will be kept until payment is verified.`);
         if (order.paymentUrl) window.location.assign(order.paymentUrl);

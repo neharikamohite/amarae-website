@@ -22,6 +22,7 @@
           <li><a href="collections.html" class="active-page">Shop</a></li>
           <li><a href="findFragrance.html">Find Match</a></li>
           <li><a href="chemistry.html">Notes</a></li>
+          <li><a href="account.html">Account</a></li>
           <li><a href="#cart">Cart <span class="cart-count">0</span></a></li>
         </ul>
       </nav>
@@ -47,6 +48,16 @@
         <label class="search-box">
           <span>Search</span>
           <input id="productSearch" type="search" placeholder="Try rose, oud, vanilla, fresh..." />
+        </label>
+        <label class="sort-box">
+          <span>Sort</span>
+          <select id="productSort">
+            <option value="recommended">Recommended</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Top rated</option>
+            <option value="popularity">Most reviewed</option>
+          </select>
         </label>
         <div class="shop-toolbar">
           <button class="filter-chip active" data-filter="all">All</button>
@@ -74,17 +85,55 @@
         <div class="cart-offer" id="cartOffer">Add a 100 ml fragrance to unlock your complimentary different 100 ml scent.</div>
         <label class="mini-choice" for="complimentaryMini">Complimentary 100 ml fragrance (must be different from your cart)</label>
         <select id="complimentaryMini" disabled><option value="">Add a fragrance to unlock this selection</option></select>
+
+        <div class="coupon-row">
+          <input id="couponCodeInput" type="text" placeholder="Coupon code" aria-label="Coupon code" autocomplete="off" />
+          <button type="button" class="secondary-btn compact" id="applyCouponBtn">Apply</button>
+        </div>
+        <p class="coupon-note" id="couponNote"></p>
+
+        <div class="cart-summary cart-summary-line">
+          <span>Subtotal</span>
+          <strong id="cartSubtotal">₹0</strong>
+        </div>
+        <div class="cart-summary cart-summary-line" id="cartDiscountRow" hidden>
+          <span id="cartDiscountLabel">Discount</span>
+          <strong id="cartDiscount">-₹0</strong>
+        </div>
         <div class="cart-summary">
-          <span>Total</span>
+          <span>Total (before shipping)</span>
           <strong id="cartTotal">₹0</strong>
         </div>
+
+        <div class="trust-strip" aria-label="Why shop with us">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="9.5" rx="1.6"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg>Secure payments via Razorpay</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="7" width="12" height="10" rx="1.2"/><path d="M14.5 10.5h3.6l3.4 3.4V17h-7z"/><circle cx="7" cy="18.3" r="1.6"/><circle cx="17.3" cy="18.3" r="1.6"/></svg>Ships across India</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3.5 4.5 7v6.2C4.5 17.6 7.8 20.7 12 21.5c4.2-.8 7.5-3.9 7.5-8.3V7Z"/><path d="M9 12.2l2.1 2.1 4-4.3" stroke-linecap="round" stroke-linejoin="round"/></svg>Careful, protective packaging</span>
+        </div>
+
         <form class="checkout-form">
           <input id="customerName" type="text" placeholder="Full name" aria-label="Full name" />
           <input id="customerEmail" type="email" placeholder="Email address" aria-label="Email address" />
-          <input id="deliveryCity" type="text" placeholder="Delivery city and PIN code" aria-label="Delivery city and PIN code" />
+          <input id="customerPhone" type="tel" placeholder="10-digit mobile number" aria-label="Mobile number" />
+          <input id="shippingAddressLine" type="text" placeholder="Flat / house no., street, area" aria-label="Address line" class="span-2" />
+          <input id="shippingCity" type="text" placeholder="City" aria-label="City" />
+          <input id="shippingState" type="text" placeholder="State" aria-label="State" />
+          <input id="shippingPinCode" type="text" placeholder="6-digit PIN code" aria-label="PIN code" />
           <button type="button" class="primary-btn checkout-btn">Proceed to secure payment</button>
         </form>
         <p class="checkout-note" id="checkoutNote"></p>
+      </section>
+
+      <section class="order-help" aria-label="Order help">
+        <div class="order-help-copy">
+          <h2>Need help with an order?</h2>
+          <p>Delayed, hasn't arrived, or something's not right? Message us with your order number and we'll sort it out quickly.</p>
+        </div>
+        <div class="order-help-actions">
+          <a class="primary-btn compact" href="https://wa.me/919579222532?text=Hi%2C%20I%20need%20help%20with%20my%20AMARA%C3%88%20order.%0AOrder%20number%3A%20%0AWhat's%20going%20on%3A%20delayed%20%2F%20not%20received%20%2F%20wrong%20item" target="_blank" rel="noopener">WhatsApp us</a>
+          <a class="secondary-btn compact" href="mailto:help@amaraeformulations.com?subject=Order%20help&body=Order%20number%3A%20%0AWhat's%20going%20on%3A%20delayed%20%2F%20not%20received%20%2F%20wrong%20item%0A%0ADetails%3A%20">Email us</a>
+        </div>
+        <p class="order-help-note">Wrong, damaged, or defective item? See our <a href="cancellation-refund.html">Cancellation &amp; Refund policy</a> for how returns work.</p>
       </section>
     </main>
 

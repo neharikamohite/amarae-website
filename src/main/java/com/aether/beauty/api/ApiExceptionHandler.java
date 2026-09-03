@@ -1,5 +1,6 @@
 package com.aether.beauty.api;
 
+import com.aether.beauty.api.exception.UnauthorizedException;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.util.Map;
@@ -19,6 +20,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler({ IllegalArgumentException.class, IllegalStateException.class })
   public ResponseEntity<Map<String, Object>> badRequest(RuntimeException ex) {
     return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+  }
+
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<Map<String, Object>> unauthorized(UnauthorizedException ex) {
+    return error(HttpStatus.UNAUTHORIZED, ex.getMessage());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

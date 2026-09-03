@@ -12,7 +12,7 @@ if (-not (Test-Path $staticDir)) {
 }
 
 # Copy HTML files
-$htmlFiles = @("index.html", "checkout.html", "chemistry.html", "collections.html", "findFragrance.html", "about.html", "cancellation-refund.html", "privacy-policy.html", "shipping-delivery.html", "terms-and-conditions.html")
+$htmlFiles = @("index.html", "checkout.html", "chemistry.html", "collections.html", "findFragrance.html", "about.html", "cancellation-refund.html", "privacy-policy.html", "shipping-delivery.html", "terms-and-conditions.html", "account.html", "admin.html")
 foreach ($file in $htmlFiles) {
     if (Test-Path $file) {
         Copy-Item $file "$staticDir\" -Force
@@ -23,7 +23,7 @@ foreach ($file in $htmlFiles) {
 }
 
 # Copy CSS and JS files
-$staticFiles = @("javas.js", "style.css")
+$staticFiles = @("javas.js", "style.css", "account.js", "admin.js")
 foreach ($file in $staticFiles) {
     if (Test-Path $file) {
         Copy-Item $file "$staticDir\" -Force

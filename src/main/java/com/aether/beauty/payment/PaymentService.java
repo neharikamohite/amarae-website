@@ -3,6 +3,7 @@ package com.aether.beauty.payment;
 import com.aether.beauty.order.CustomerOrder;
 import com.aether.beauty.order.CustomerOrderRepository;
 import com.aether.beauty.order.OrderStatus;
+import com.aether.beauty.notification.EmailService;
 import com.aether.beauty.realtime.RealtimeEventService;
 import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +21,7 @@ public class PaymentService {
   private final PaymentTransactionRepository paymentTransactionRepository;
   private final CustomerOrderRepository customerOrderRepository;
   private final RealtimeEventService realtimeEventService;
+  private final EmailService emailService;
 
   public PaymentService(
     PaymentProperties paymentProperties,
@@ -27,7 +29,8 @@ public class PaymentService {
     RazorpayPaymentGateway razorpayPaymentGateway,
     PaymentTransactionRepository paymentTransactionRepository,
     CustomerOrderRepository customerOrderRepository,
-    RealtimeEventService realtimeEventService
+    RealtimeEventService realtimeEventService,
+    EmailService emailService
   ) {
     this.paymentProperties = paymentProperties;
     this.demoPaymentGateway = demoPaymentGateway;
@@ -35,6 +38,7 @@ public class PaymentService {
     this.paymentTransactionRepository = paymentTransactionRepository;
     this.customerOrderRepository = customerOrderRepository;
     this.realtimeEventService = realtimeEventService;
+    this.emailService = emailService;
   }
 
   @Transactional
@@ -71,6 +75,9 @@ public class PaymentService {
     order.setStatus(status == PaymentStatus.PAID ? OrderStatus.PAID : OrderStatus.FAILED);
     customerOrderRepository.save(order);
     realtimeEventService.publish("orders", order.getId());
+    if (status == PaymentStatus.PAID) {
+      emailService.sendOrderConfirmation(order);
+    }
     return order;
   }
 

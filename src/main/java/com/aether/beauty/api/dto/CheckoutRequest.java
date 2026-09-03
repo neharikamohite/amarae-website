@@ -12,5 +12,6 @@ public record CheckoutRequest(
   @NotBlank String shippingState,
   @NotBlank String shippingPinCode,
   @NotBlank String phone,
-  Long complimentaryProductId
+  Long complimentaryProductId,
+  String couponCode
 ) {}

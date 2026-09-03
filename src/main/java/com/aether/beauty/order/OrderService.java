@@ -1,13 +1,17 @@
 package com.aether.beauty.order;
 
 import com.aether.beauty.api.dto.CheckoutRequest;
+import com.aether.beauty.auth.User;
 import com.aether.beauty.cart.CartItem;
 import com.aether.beauty.cart.CartService;
+import com.aether.beauty.coupon.CouponResult;
+import com.aether.beauty.coupon.CouponService;
 import com.aether.beauty.payment.PaymentService;
 import com.aether.beauty.product.Product;
 import com.aether.beauty.product.ProductService;
 import com.aether.beauty.realtime.RealtimeEventService;
 import com.aether.beauty.shipping.ShippingService;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,7 @@ public class OrderService {
   private final RealtimeEventService realtimeEventService;
   private final ProductService productService;
   private final ShippingService shippingService;
+  private final CouponService couponService;
 
   public OrderService(
     CustomerOrderRepository customerOrderRepository,
@@ -30,7 +35,8 @@ public class OrderService {
     PaymentService paymentService,
     RealtimeEventService realtimeEventService,
     ProductService productService,
-    ShippingService shippingService
+    ShippingService shippingService,
+    CouponService couponService
   ) {
     this.customerOrderRepository = customerOrderRepository;
     this.cartService = cartService;
@@ -38,14 +44,49 @@ public class OrderService {
     this.realtimeEventService = realtimeEventService;
     this.productService = productService;
     this.shippingService = shippingService;
+    this.couponService = couponService;
   }
 
-  public List<CustomerOrder> latestOrders() {
-    return customerOrderRepository.findTop25ByOrderByCreatedAtDesc();
+  // Used only by the admin dashboard (authenticated) — every order, not
+  // just the most recent, since an owner reviewing their store needs the
+  // full list.
+  public List<CustomerOrder> allOrdersMostRecentFirst() {
+    return customerOrderRepository.findAllByOrderByCreatedAtDesc();
   }
 
   @Transactional
-  public CustomerOrder checkout(CheckoutRequest request) {
+  public CustomerOrder updateFulfillment(
+    Long orderId,
+    OrderStatus status,
+    String trackingCourier,
+    String trackingNumber,
+    String trackingUrl
+  ) {
+    CustomerOrder order = customerOrderRepository
+      .findById(orderId)
+      .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+    if (status != null) {
+      order.setStatus(status);
+    }
+    // Blank strings clear a field (e.g. correcting a typo'd AWB); null
+    // means "leave this field as it was" so the admin can update just one
+    // field at a time without resending the others.
+    if (trackingCourier != null) {
+      order.setTrackingCourier(trackingCourier.isBlank() ? null : trackingCourier.trim());
+    }
+    if (trackingNumber != null) {
+      order.setTrackingNumber(trackingNumber.isBlank() ? null : trackingNumber.trim());
+    }
+    if (trackingUrl != null) {
+      order.setTrackingUrl(trackingUrl.isBlank() ? null : trackingUrl.trim());
+    }
+    CustomerOrder saved = customerOrderRepository.save(order);
+    realtimeEventService.publish("orders", saved.getId());
+    return saved;
+  }
+
+  @Transactional
+  public CustomerOrder checkout(CheckoutRequest request, User user) {
     List<CartItem> cartItems = cartService.getCart(request.sessionId());
     if (cartItems.isEmpty()) {
       throw new IllegalStateException("Cart is empty");
@@ -56,6 +97,7 @@ public class OrderService {
     shippingService.requireValidIndianAddress(request.shippingPinCode(), request.phone());
 
     CustomerOrder order = new CustomerOrder();
+    order.setUser(user);
     order.setSessionId(request.sessionId());
     order.setCustomerName(request.customerName());
     order.setEmail(request.email());
@@ -125,9 +167,25 @@ public class OrderService {
     // Shipping is charged on the paid subtotal only — the complimentary
     // gift line above is unit price 0 so it never inflates delivery cost.
     BigDecimal shippingFee = shippingService.computeShippingFee(total);
+
+    // Coupon discount, if any, is validated authoritatively here — never
+    // trusted from whatever the cart preview showed the customer. It's
+    // applied to the product subtotal only, computed on the pre-discount
+    // subtotal so a coupon can't be used to sneak past the free-shipping
+    // threshold.
+    BigDecimal discountAmount = BigDecimal.ZERO;
+    String appliedCouponCode = null;
+    if (request.couponCode() != null && !request.couponCode().isBlank()) {
+      CouponResult couponResult = couponService.validate(request.couponCode(), total);
+      discountAmount = couponResult.discount();
+      appliedCouponCode = couponResult.code();
+    }
+
     order.setSubtotal(total);
+    order.setCouponCode(appliedCouponCode);
+    order.setDiscountAmount(discountAmount);
     order.setShippingFee(shippingFee);
-    order.setTotal(total.add(shippingFee));
+    order.setTotal(total.subtract(discountAmount).add(shippingFee));
 
     CustomerOrder saved = customerOrderRepository.save(order);
     paymentService.createPayment(saved);

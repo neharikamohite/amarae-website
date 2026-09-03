@@ -2,6 +2,7 @@ package com.aether.beauty.api;
 
 import com.aether.beauty.api.dto.CartDto;
 import com.aether.beauty.api.dto.CartItemDto;
+import com.aether.beauty.api.dto.AdminOrderDto;
 import com.aether.beauty.api.dto.OrderDto;
 import com.aether.beauty.api.dto.OrderLineDto;
 import com.aether.beauty.api.dto.ProductDto;
@@ -90,13 +91,31 @@ public class ApiMapper {
       order.getId(),
       order.getStatus(),
       order.getSubtotal(),
+      order.getCouponCode(),
+      order.getDiscountAmount(),
       order.getShippingFee(),
       order.getTotal(),
       order.getPaymentProvider(),
       order.getPaymentReference(),
       order.getPaymentUrl(),
+      order.getTrackingCourier(),
+      order.getTrackingNumber(),
+      order.getTrackingUrl(),
       order.getCreatedAt(),
       lines
+    );
+  }
+
+  public AdminOrderDto toAdminOrderDto(CustomerOrder order) {
+    return new AdminOrderDto(
+      toOrderDto(order),
+      order.getCustomerName(),
+      order.getEmail(),
+      order.getPhone(),
+      order.getShippingAddressLine(),
+      order.getShippingCity(),
+      order.getShippingState(),
+      order.getShippingPinCode()
     );
   }
 }

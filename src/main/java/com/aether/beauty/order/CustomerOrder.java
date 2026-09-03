@@ -4,9 +4,11 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -14,12 +16,18 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import com.aether.beauty.auth.User;
 
 @Entity
 public class CustomerOrder {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  // Null for guest checkouts — only set when the shopper was signed in at
+  // checkout, so order history has something to query against.
+  @ManyToOne(fetch = FetchType.LAZY, optional = true)
+  private User user;
 
   @NotBlank
   private String sessionId;
@@ -54,6 +62,10 @@ public class CustomerOrder {
 
   private BigDecimal subtotal = BigDecimal.ZERO;
 
+  private String couponCode;
+
+  private BigDecimal discountAmount = BigDecimal.ZERO;
+
   private BigDecimal shippingFee = BigDecimal.ZERO;
 
   private BigDecimal total = BigDecimal.ZERO;
@@ -63,6 +75,16 @@ public class CustomerOrder {
   private String paymentReference;
 
   private String paymentUrl;
+
+  // Set by the admin dashboard once an order ships — this is the whole
+  // point of Level 2 tracking: a place to type in the courier/AWB so the
+  // customer's order history can show it, instead of it living only in a
+  // WhatsApp message.
+  private String trackingCourier;
+
+  private String trackingNumber;
+
+  private String trackingUrl;
 
   private Instant createdAt = Instant.now();
 
@@ -75,6 +97,14 @@ public class CustomerOrder {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
   }
 
   public String getSessionId() {
@@ -165,6 +195,22 @@ public class CustomerOrder {
     this.subtotal = subtotal;
   }
 
+  public String getCouponCode() {
+    return couponCode;
+  }
+
+  public void setCouponCode(String couponCode) {
+    this.couponCode = couponCode;
+  }
+
+  public BigDecimal getDiscountAmount() {
+    return discountAmount;
+  }
+
+  public void setDiscountAmount(BigDecimal discountAmount) {
+    this.discountAmount = discountAmount;
+  }
+
   public BigDecimal getShippingFee() {
     return shippingFee;
   }
@@ -203,6 +249,30 @@ public class CustomerOrder {
 
   public void setPaymentUrl(String paymentUrl) {
     this.paymentUrl = paymentUrl;
+  }
+
+  public String getTrackingCourier() {
+    return trackingCourier;
+  }
+
+  public void setTrackingCourier(String trackingCourier) {
+    this.trackingCourier = trackingCourier;
+  }
+
+  public String getTrackingNumber() {
+    return trackingNumber;
+  }
+
+  public void setTrackingNumber(String trackingNumber) {
+    this.trackingNumber = trackingNumber;
+  }
+
+  public String getTrackingUrl() {
+    return trackingUrl;
+  }
+
+  public void setTrackingUrl(String trackingUrl) {
+    this.trackingUrl = trackingUrl;
   }
 
   public Instant getCreatedAt() {
