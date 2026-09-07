@@ -210,7 +210,7 @@ window.addEventListener("load", () => {
     document.getElementById("accountEmail").textContent = email;
     document.getElementById("accountAuth").hidden = true;
     document.getElementById("accountDashboard").hidden = false;
-    await Promise.all([loadAddresses(), loadOrders()]);
+    await Promise.all([loadAddresses(), loadOrders(), loadWishlist()]);
   }
 
   async function loadAddresses() {
@@ -284,6 +284,53 @@ window.addEventListener("load", () => {
         <div class="order-card-foot">
           <span>${formatDate(order.createdAt)}</span>
           <strong>${formatMoney(order.total)}</strong>
+        </div>
+      </article>
+    `;
+  }
+
+  async function loadWishlist() {
+    const grid = document.getElementById("wishlistGrid");
+    if (!grid) return;
+    try {
+      const products = await api("/api/account/wishlist");
+      grid.innerHTML = products.length
+        ? products.map(wishlistCardTemplate).join("")
+        : '<p class="reviews-empty">Nothing saved yet — tap the heart on any product to add it here.</p>';
+      grid.querySelectorAll("[data-remove-wishlist]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const productId = button.dataset.removeWishlist;
+          button.disabled = true;
+          try {
+            await api(`/api/account/wishlist/${productId}`, { method: "DELETE" });
+            // Keep the guest-wishlist heart state (used on collections.html)
+            // in sync too, so it doesn't still show as saved there.
+            try {
+              const local = JSON.parse(localStorage.getItem("amaraeWishlist") || "[]");
+              localStorage.setItem("amaraeWishlist", JSON.stringify(local.filter((id) => id !== String(productId))));
+            } catch (storageError) {
+              // Non-fatal — worst case the heart just stays active until next sync.
+            }
+            await loadWishlist();
+          } catch (error) {
+            button.disabled = false;
+          }
+        });
+      });
+    } catch (error) {
+      grid.innerHTML = '<p class="reviews-empty">Could not load your wishlist right now.</p>';
+    }
+  }
+
+  function wishlistCardTemplate(product) {
+    return `
+      <article class="wishlist-card">
+        <img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" />
+        <strong>${escapeHtml(product.name)}</strong>
+        <span>${formatMoney(product.price)}</span>
+        <div class="wishlist-card-actions">
+          <a href="collections.html">View</a>
+          <button type="button" data-remove-wishlist="${product.id}">Remove</button>
         </div>
       </article>
     `;

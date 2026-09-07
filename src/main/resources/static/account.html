@@ -9,6 +9,9 @@
     <link rel="icon" href="assets/favicon-192.png" sizes="192x192" type="image/png" />
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap">
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -29,6 +32,7 @@
     </header>
 
     <main class="page-wrap account-page">
+      <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Account</span></nav>
       <p class="eyebrow">Account</p>
       <h1 class="page-title" id="accountHeading">My Account</h1>
 
@@ -98,6 +102,13 @@
             <h2>Order history</h2>
             <div class="order-history-list" id="orderHistoryList">
               <p class="reviews-empty">Loading your orders…</p>
+            </div>
+          </section>
+
+          <section class="account-block account-block-wide" aria-label="Wishlist">
+            <h2>My Wishlist</h2>
+            <div class="wishlist-grid" id="wishlistGrid">
+              <p class="reviews-empty">Loading your wishlist…</p>
             </div>
           </section>
         </div>

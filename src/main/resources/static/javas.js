@@ -9,6 +9,7 @@ window.addEventListener("load", () => {
   let activeSort = "recommended";
   let giftEligible = false;
   let appliedCoupon = null; // { code, discount } once validated against the cart
+  let cartQuantities = {}; // productId (string) -> quantity currently in cart
 
   const fallbackProducts = [
     perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40, 100),
@@ -29,6 +30,34 @@ window.addEventListener("load", () => {
   initShop();
   initRealtime();
   initProductModal();
+  loadFeaturedTestimonials();
+  syncWishlistFromAccount();
+
+  // Homepage-only, but safe to call on every page: no-ops instantly if
+  // there's no testimonial section on the current page.
+  async function loadFeaturedTestimonials() {
+    const grid = document.getElementById("testimonialGrid");
+    if (!grid) return;
+    try {
+      const reviews = await api("/api/reviews/featured");
+      if (!reviews.length) return;
+      const heading = document.getElementById("testimonial-title");
+      const intro = document.getElementById("testimonialIntro");
+      if (heading) heading.textContent = "What customers are saying.";
+      if (intro) intro.textContent = "Real feedback from verified AMARAÈ reviews.";
+      grid.innerHTML = reviews
+        .map(
+          (review) => `
+            <blockquote>
+              “${escapeHtml(review.comment)}”<cite>— ${escapeHtml(review.customerName)}, on ${escapeHtml(review.productName)}</cite>
+            </blockquote>
+          `
+        )
+        .join("");
+    } catch (error) {
+      // Leave the honest placeholder in place if this fails for any reason.
+    }
+  }
 
   function perfume(id, name, category, description, price, imageUrl, stock, sizeMl) {
     return { id, name, category, description, price, imageUrl, stock, sizeMl };
@@ -197,8 +226,12 @@ window.addEventListener("load", () => {
     setupSort();
     attachCheckout();
     attachCouponForm();
-    await loadProducts();
+    // Cart loads first so cartQuantities is already known by the time
+    // products render — otherwise every card would briefly show "Add to
+    // cart" even for items already in the cart, then flip to a stepper a
+    // moment later.
     await loadCart();
+    await loadProducts();
   }
 
   async function loadProducts() {
@@ -214,6 +247,53 @@ window.addEventListener("load", () => {
       showCheckoutNote("Preview catalog is showing because the backend is not running.");
     }
     renderProducts();
+    injectProductStructuredData();
+  }
+
+  // Products are fetched client-side via API rather than server-rendered,
+  // so search engines can't see them in the page's initial HTML. This
+  // injects the same catalog as JSON-LD after it loads — a widely-used,
+  // Google-supported way to get product/rating rich results without a
+  // full server-rendering rewrite of the site.
+  function injectProductStructuredData() {
+    const existing = document.getElementById("productSchema");
+    if (existing) existing.remove();
+    if (!activeProducts.length) return;
+
+    const itemListElement = activeProducts.map((product, index) => {
+      const item = {
+        "@type": "Product",
+        name: product.name,
+        image: product.imageUrl,
+        description: product.description,
+        sku: String(product.id),
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "INR",
+          price: Number(product.price).toFixed(2),
+          availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          url: "https://amaraeformulations.com/collections.html",
+        },
+      };
+      if (Number(product.reviewCount) > 0) {
+        item.aggregateRating = {
+          "@type": "AggregateRating",
+          ratingValue: Number(product.avgRating).toFixed(1),
+          reviewCount: Number(product.reviewCount),
+        };
+      }
+      return { "@type": "ListItem", position: index + 1, item };
+    });
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "productSchema";
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement,
+    });
+    document.head.appendChild(script);
   }
 
   function renderProducts() {
@@ -232,6 +312,7 @@ window.addEventListener("load", () => {
       ? products.map(productCardTemplate).join("")
       : '<div class="empty-state">No perfume matched that search. Try rose, fresh, oud, warm, or vanilla.</div>';
     attachCartButtons();
+    attachBuyNowButtons();
     attachWishlistButtons();
     attachCardOpenHandlers();
   }
@@ -276,17 +357,45 @@ window.addEventListener("load", () => {
         <h3>${escapeHtml(product.name)}</h3>
         ${cardRatingTemplate(product)}
         <p class="card-hint">Tap to view full details, notes, and reviews</p>
-        <button class="add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
-          ${product.stock > 0 ? "Add to cart" : "Sold out"}
-        </button>
+        ${cardActionsTemplate(product)}
       </article>
+    `;
+  }
+
+  // Once a product is already in the cart, replace Add to Cart/Buy Now
+  // with a +/- stepper — same pattern Flipkart/Blinkit use — so quantity
+  // changes don't require opening the cart panel, and it's immediately
+  // visible that the item was actually added (the earlier "Added" flash
+  // was too easy to miss).
+  function cardActionsTemplate(product) {
+    if (product.stock <= 0) {
+      return `<div class="card-actions"><button class="add-cart" disabled>Sold out</button></div>`;
+    }
+    const qty = cartQuantities[String(product.id)] || 0;
+    if (qty > 0) {
+      return `
+        <div class="card-actions in-cart">
+          <div class="qty-controls" aria-label="Quantity of ${escapeHtml(product.name)} in cart" data-product-id="${product.id}">
+            <button type="button" data-action="decrease" aria-label="Decrease quantity">-</button>
+            <strong>${qty}</strong>
+            <button type="button" data-action="increase" aria-label="Increase quantity">+</button>
+          </div>
+          <a href="#cart" class="go-to-cart-link">Go to cart</a>
+        </div>
+      `;
+    }
+    return `
+      <div class="card-actions">
+        <button class="add-cart" data-product-id="${product.id}">Add to cart</button>
+        <button class="buy-now-btn" data-product-id="${product.id}">Buy Now</button>
+      </div>
     `;
   }
 
   function attachCardOpenHandlers() {
     document.querySelectorAll(".product-card").forEach((card) => {
       const open = (event) => {
-        if (event.target.closest(".wish-btn") || event.target.closest(".add-cart")) return;
+        if (event.target.closest(".wish-btn") || event.target.closest(".add-cart") || event.target.closest(".buy-now-btn")) return;
         openProductModal(card.dataset.productId);
       };
       card.addEventListener("click", open);
@@ -325,9 +434,12 @@ window.addEventListener("load", () => {
           <div><span>Availability</span><strong>${product.stock > 20 ? "In stock" : product.stock > 0 ? "Limited stock" : "Sold out"}</strong></div>
           <div><span>MRP</span><strong>${formatMoney(product.price)}</strong></div>
         </div>
-        <button class="primary-btn modal-add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
-          ${product.stock > 0 ? "Add to cart" : "Sold out"}
-        </button>
+        <div class="modal-cta-row">
+          <button class="primary-btn modal-add-cart" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>
+            ${product.stock > 0 ? "Add to cart" : "Sold out"}
+          </button>
+          <button class="secondary-btn modal-buy-now" data-product-id="${product.id}" ${product.stock > 0 ? "" : "disabled"}>Buy Now</button>
+        </div>
         ${reviewsSectionTemplate(product.id)}
       </div>
     `;
@@ -336,13 +448,99 @@ window.addEventListener("load", () => {
     document.body.classList.add("modal-open");
     attachCartButtons();
     attachWishlistButtons();
+    attachBuyNowButtons();
+    attachQuantityStepperButtons();
 
     modalBody.querySelector(".modal-add-cart")?.addEventListener("click", () => {
       document.querySelector(`.add-cart[data-product-id="${product.id}"]`)?.click();
     });
+    modalBody.querySelector(".modal-buy-now")?.addEventListener("click", () => {
+      document.querySelector(`.buy-now-btn[data-product-id="${product.id}"]`)?.click();
+      document.getElementById("productModal")?.classList.remove("open");
+      document.body.classList.remove("modal-open");
+    });
 
     loadReviews(product.id);
     attachReviewForm(product.id);
+  }
+
+  function modalActionsTemplate(product) {
+    if (product.stock <= 0) {
+      return `<div class="modal-cta-row"><button class="primary-btn modal-add-cart" disabled>Sold out</button></div>`;
+    }
+    const qty = cartQuantities[String(product.id)] || 0;
+    if (qty > 0) {
+      return `
+        <div class="modal-cta-row in-cart">
+          <div class="qty-controls" aria-label="Quantity of ${escapeHtml(product.name)} in cart" data-product-id="${product.id}">
+            <button type="button" data-action="decrease" aria-label="Decrease quantity">-</button>
+            <strong>${qty}</strong>
+            <button type="button" data-action="increase" aria-label="Increase quantity">+</button>
+          </div>
+          <a href="#cart" class="go-to-cart-link">Go to cart</a>
+        </div>
+      `;
+    }
+    return `
+      <div class="modal-cta-row">
+        <button class="primary-btn modal-add-cart" data-product-id="${product.id}">Add to cart</button>
+        <button class="secondary-btn modal-buy-now" data-product-id="${product.id}">Buy Now</button>
+      </div>
+    `;
+  }
+
+  // Called after every cart change so Add to Cart/Buy Now flips to a
+  // quantity stepper the instant an item is actually in the cart — both
+  // in the grid and in the modal, if it's the one currently open.
+  function updateProductCardCartState() {
+    document.querySelectorAll(".product-card").forEach((card) => {
+      const product = activeProducts.find((item) => String(item.id) === card.dataset.productId);
+      const actionsEl = card.querySelector(".card-actions");
+      if (product && actionsEl) actionsEl.outerHTML = cardActionsTemplate(product);
+    });
+
+    const modal = document.getElementById("productModal");
+    const modalCta = modal?.querySelector(".modal-cta-row");
+    const openProductId = modal?.querySelector("[data-product-id]")?.dataset.productId;
+    if (modal?.classList.contains("open") && modalCta && openProductId) {
+      const product = activeProducts.find((item) => String(item.id) === openProductId);
+      if (product) modalCta.outerHTML = modalActionsTemplate(product);
+    }
+
+    attachCartButtons();
+    attachBuyNowButtons();
+    attachQuantityStepperButtons();
+    document.querySelectorAll(".modal-add-cart").forEach((button) => {
+      button.onclick = () => document.querySelector(`.add-cart[data-product-id="${button.dataset.productId}"]`)?.click();
+    });
+    document.querySelectorAll(".modal-buy-now").forEach((button) => {
+      button.onclick = () => {
+        document.querySelector(`.buy-now-btn[data-product-id="${button.dataset.productId}"]`)?.click();
+        document.getElementById("productModal")?.classList.remove("open");
+        document.body.classList.remove("modal-open");
+      };
+    });
+  }
+
+  function attachQuantityStepperButtons() {
+    document.querySelectorAll(".qty-controls[data-product-id] button").forEach((button) => {
+      button.onclick = async () => {
+        const wrapper = button.closest(".qty-controls");
+        const productId = wrapper.dataset.productId;
+        const currentQty = cartQuantities[productId] || 0;
+        const nextQty = button.dataset.action === "increase" ? currentQty + 1 : currentQty - 1;
+        wrapper.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        try {
+          await api(`/api/cart/items/${productId}`, {
+            method: "PATCH",
+            body: JSON.stringify({ quantity: nextQty }),
+          });
+          await loadCart();
+        } catch (error) {
+          wrapper.querySelectorAll("button").forEach((b) => (b.disabled = false));
+        }
+      };
+    });
   }
 
   // Real star rating pulled from the product's live aggregate (avgRating /
@@ -721,6 +919,33 @@ window.addEventListener("load", () => {
     });
   }
 
+  function attachBuyNowButtons() {
+    document.querySelectorAll(".buy-now-btn").forEach((button) => {
+      button.onclick = async () => {
+        try {
+          button.disabled = true;
+          button.textContent = "Adding…";
+          await api("/api/cart/items", {
+            method: "POST",
+            body: JSON.stringify({ productId: Number(button.dataset.productId), quantity: 1 }),
+          });
+          await loadCart();
+          // "Buy Now" adds the item to the existing cart (nothing already
+          // in it is lost) and jumps straight to checkout, rather than a
+          // true single-item bypass — the fastest path to purchase this
+          // cart-based layout supports without a parallel checkout flow.
+          document.getElementById("cart")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          document.getElementById("customerName")?.focus({ preventScroll: true });
+        } catch (error) {
+          showCheckoutNote("Start the Spring Boot backend to use live cart and checkout.");
+        } finally {
+          button.disabled = false;
+          button.textContent = "Buy Now";
+        }
+      };
+    });
+  }
+
   async function loadCart() {
     const cartCountEls = document.querySelectorAll(".cart-count");
     const cartItemsEl = document.getElementById("cartItems");
@@ -732,6 +957,8 @@ window.addEventListener("load", () => {
       cartCountEls.forEach((el) => {
         el.textContent = count;
       });
+      cartQuantities = Object.fromEntries(cart.items.map((item) => [String(item.productId), item.quantity]));
+      updateProductCardCartState();
 
       if (!cartItemsEl || !cartTotalEl) return;
       if (cart.items.length === 0) {
@@ -756,6 +983,8 @@ window.addEventListener("load", () => {
       cartCountEls.forEach((el) => {
         el.textContent = "0";
       });
+      cartQuantities = {};
+      updateProductCardCartState();
       if (cartItemsEl) {
         cartItemsEl.innerHTML = '<div class="cart-empty">Live cart appears here after the backend starts.</div>';
       }
@@ -976,14 +1205,45 @@ window.addEventListener("load", () => {
 
   function attachWishlistButtons() {
     document.querySelectorAll(".wish-btn").forEach((button) => {
-      button.onclick = () => {
+      button.onclick = async () => {
         const id = String(button.dataset.productId);
         const wishlist = getWishlist();
-        const next = wishlist.includes(id) ? wishlist.filter((item) => item !== id) : [...wishlist, id];
+        const nowActive = !wishlist.includes(id);
+        const next = nowActive ? [...wishlist, id] : wishlist.filter((item) => item !== id);
         localStorage.setItem(wishlistKey, JSON.stringify(next));
-        button.classList.toggle("active", next.includes(id));
+        button.classList.toggle("active", nowActive);
+
+        // Signed-in shoppers also get this synced to their account so it
+        // follows them across devices — guests keep the same button
+        // behavior, just local-only, same as before.
+        const authToken = localStorage.getItem("amaraeAuthToken");
+        if (authToken) {
+          try {
+            await api(`/api/account/wishlist/${id}`, { method: nowActive ? "POST" : "DELETE" });
+          } catch (error) {
+            // Non-fatal — the visible toggle already happened; it'll
+            // simply retry next time this button is clicked.
+          }
+        }
       };
     });
+  }
+
+  // Pulls a signed-in shopper's saved-elsewhere wishlist into this
+  // browser's localStorage, so hearts show correctly on a new device too.
+  // Silently does nothing for guests or if the backend is unreachable.
+  async function syncWishlistFromAccount() {
+    const authToken = localStorage.getItem("amaraeAuthToken");
+    if (!authToken) return;
+    try {
+      const items = await api("/api/account/wishlist");
+      const remoteIds = items.map((product) => String(product.id));
+      const merged = Array.from(new Set([...getWishlist(), ...remoteIds]));
+      localStorage.setItem(wishlistKey, JSON.stringify(merged));
+      if (document.querySelector(".product-grid")) renderProducts();
+    } catch (error) {
+      // Leave local wishlist as-is.
+    }
   }
 
   function showCheckoutNote(message) {

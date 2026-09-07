@@ -32,6 +32,18 @@ public class ReviewService {
     return reviewRepository.findByProductIdOrderByCreatedAtDesc(productId);
   }
 
+  // Recent, well-rated, text-only reviews spanning the whole catalog — for
+  // the homepage. Fetches a few extra (rating >= 4) and filters out
+  // star-only reviews with no comment, since a quote needs actual text.
+  public List<Review> findFeatured() {
+    return reviewRepository
+      .findTop6ByRatingGreaterThanEqualOrderByCreatedAtDesc(4)
+      .stream()
+      .filter(review -> review.getComment() != null && !review.getComment().isBlank())
+      .limit(3)
+      .toList();
+  }
+
   @Transactional
   public Review submitReview(
     Long productId,

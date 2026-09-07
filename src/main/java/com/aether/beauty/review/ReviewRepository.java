@@ -10,4 +10,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
   Optional<Review> findByProductIdAndSessionId(Long productId, String sessionId);
 
   long countByProductId(Long productId);
+
+  List<Review> findTop6ByRatingGreaterThanEqualOrderByCreatedAtDesc(int rating);
 }
