@@ -11,6 +11,11 @@ window.addEventListener("load", () => {
   let appliedCoupon = null; // { code, discount } once validated against the cart
   let cartQuantities = {}; // productId (string) -> quantity currently in cart
 
+  // Where UPI payments actually land — update this if the business
+  // account/UPI ID ever changes.
+  const upiPayeeId = "neharikamohite@okhdfcbank";
+  const upiPayeeName = "AMARAE Formulations";
+
   const fallbackProducts = [
     perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40, 100),
     perfume(102, "Wild Sovereign", "woody", "Citrus bergamot and lavender settle into warm amber woods, wild, untamed, and free.", 1499, "assets/wild-sovereign.jpg", 35, 100),
@@ -30,6 +35,7 @@ window.addEventListener("load", () => {
   initShop();
   initRealtime();
   initProductModal();
+  initOrderConfirmedModal();
   loadFeaturedTestimonials();
   syncWishlistFromAccount();
 
@@ -1157,13 +1163,10 @@ window.addEventListener("load", () => {
 
         // No live payment gateway yet — this is a manual reservation.
         // The order already exists (with a real order number, visible in
-        // the admin dashboard as "Payment pending"); we just hand the
-        // customer to WhatsApp to confirm and pay by UPI instead of
-        // pretending a real online payment happened.
-        window.open(buildReservationWhatsAppUrl(order, payload), "_blank", "noopener");
-        showCheckoutNote(
-          `Order #${order.id} reserved — we've opened WhatsApp with your order details. Send that message to confirm, and we'll share our UPI QR code to complete payment.`
-        );
+        // the admin dashboard as "Payment pending"); show the confirmation
+        // screen with an instant payment QR instead of pretending a real
+        // online payment happened.
+        showOrderConfirmedModal(order, payload);
       } catch (error) {
         showCheckoutNote(error.message);
       }
@@ -1177,7 +1180,7 @@ window.addEventListener("load", () => {
     const discountLine =
       order.discountAmount > 0 ? `Discount (${order.couponCode || ""}): -${formatMoney(order.discountAmount)}\n` : "";
     const message = [
-      "Hi! I'd like to reserve this order from AMARAÈ.",
+      "Hi! I've just placed this order on the AMARAÈ website and I'm paying via the QR code shown there.",
       "",
       `Order #${order.id}`,
       lines,
@@ -1191,12 +1194,89 @@ window.addEventListener("load", () => {
       payload.customerName,
       `${payload.shippingAddressLine}, ${payload.shippingCity}, ${payload.shippingState} ${payload.shippingPinCode}`,
       `Phone: ${payload.phone}`,
-      "",
-      "Please share your UPI QR code so I can complete payment.",
     ]
       .filter(Boolean)
       .join("\n");
     return `https://wa.me/919579222532?text=${encodeURIComponent(message)}`;
+  }
+
+  function buildUpiPaymentUrl(order) {
+    const params = new URLSearchParams({
+      pa: upiPayeeId,
+      pn: upiPayeeName,
+      am: Number(order.total).toFixed(2),
+      cu: "INR",
+      tn: `AMARAE Order #${order.id}`,
+    });
+    return `upi://pay?${params.toString()}`;
+  }
+
+  function showOrderConfirmedModal(order, payload) {
+    const modal = document.getElementById("orderConfirmedModal");
+    const body = document.getElementById("orderConfirmedBody");
+    if (!modal || !body) return;
+
+    const upiUrl = buildUpiPaymentUrl(order);
+    // Rendered via a well-established third-party QR image service rather
+    // than a bundled library — the QR only ever encodes the UPI payment
+    // request itself (amount, order note, and this business's own public
+    // UPI ID), the same information anyone scanning a printed QR code
+    // would see anyway. The UPI ID is also shown as plain text below so
+    // payment still works even if this image fails to load.
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiUrl)}`;
+
+    const items = order.lines
+      .map((line) => `<li>${line.quantity} &times; ${escapeHtml(line.productName)} (${line.sizeMl}ml)</li>`)
+      .join("");
+
+    body.innerHTML = `
+      <div class="order-confirmed">
+        <div class="order-confirmed-check" aria-hidden="true">✓</div>
+        <h2>Order confirmed</h2>
+        <p class="order-confirmed-id">Order #${order.id}</p>
+        <ul class="order-confirmed-items">${items}</ul>
+        <div class="order-confirmed-total">
+          <span>Total due</span>
+          <strong>${formatMoney(order.total)}</strong>
+        </div>
+
+        <div class="order-confirmed-qr">
+          <img src="${qrImageUrl}" alt="Scan to pay ${formatMoney(order.total)} via UPI" width="200" height="200" />
+          <p>Scan with any UPI app (GPay, PhonePe, Paytm...)</p>
+          <p class="order-confirmed-upi-id">or pay manually to: <strong>${escapeHtml(upiPayeeId)}</strong></p>
+        </div>
+
+        <ol class="order-confirmed-steps">
+          <li>Scan the code above and pay ${formatMoney(order.total)}</li>
+          <li>Message us on WhatsApp with a screenshot of the payment</li>
+          <li>We confirm and ship within 2-4 days</li>
+        </ol>
+
+        <a class="primary-btn order-confirmed-whatsapp" href="${buildReservationWhatsAppUrl(order, payload)}" target="_blank" rel="noopener">Message us on WhatsApp</a>
+        <button type="button" class="secondary-btn order-confirmed-continue" id="orderConfirmedContinue">Continue shopping</button>
+      </div>
+    `;
+
+    document.getElementById("orderConfirmedContinue")?.addEventListener("click", closeOrderConfirmedModal);
+    modal.classList.add("open");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeOrderConfirmedModal() {
+    const modal = document.getElementById("orderConfirmedModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    document.body.classList.remove("modal-open");
+  }
+
+  function initOrderConfirmedModal() {
+    const modal = document.getElementById("orderConfirmedModal");
+    if (!modal) return;
+    modal.querySelector(".modal-backdrop")?.addEventListener("click", closeOrderConfirmedModal);
+    document.getElementById("orderConfirmedClose")?.addEventListener("click", closeOrderConfirmedModal);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeOrderConfirmedModal();
+    });
   }
 
   function getWishlist() {

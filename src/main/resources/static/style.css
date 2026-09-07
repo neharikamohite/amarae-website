@@ -1131,6 +1131,109 @@ body.modal-open {
   font-size: 1rem;
 }
 
+.order-confirmed-panel {
+  max-width: 460px;
+}
+
+.order-confirmed {
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+
+.order-confirmed-check {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #21715d;
+  color: #fff;
+  font-size: 1.6rem;
+  display: grid;
+  place-items: center;
+}
+
+.order-confirmed h2 {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.order-confirmed-id {
+  color: var(--muted);
+  font-size: 0.86rem;
+  margin-bottom: 16px;
+}
+
+.order-confirmed-items {
+  list-style: none;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 0.86rem;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-confirmed-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.order-confirmed-qr {
+  margin-bottom: 18px;
+}
+
+.order-confirmed-qr img {
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.order-confirmed-qr p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.order-confirmed-upi-id strong {
+  color: var(--ink);
+}
+
+.order-confirmed-steps {
+  text-align: left;
+  list-style: decimal;
+  padding-left: 20px;
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+
+.order-confirmed-whatsapp {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.order-confirmed-continue {
+  width: 100%;
+}
+
 .modal-body {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
