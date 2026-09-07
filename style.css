@@ -2230,6 +2230,15 @@ footer {
   gap: 14px;
 }
 
+/* The base rule above sets display:flex unconditionally, which silently
+   overrides the browser's built-in hidden-attribute behavior (an author
+   stylesheet rule always wins over the default [hidden] { display: none }
+   rule) — without this, both the login and signup forms show at once
+   instead of the JS-driven toggle actually hiding one of them. */
+.auth-form[hidden] {
+  display: none;
+}
+
 .auth-form-title {
   font-size: 1.15rem;
   margin-bottom: 2px;

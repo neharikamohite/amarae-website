@@ -232,12 +232,13 @@ window.addEventListener("load", () => {
     setupSort();
     attachCheckout();
     attachCouponForm();
-    // Cart loads first so cartQuantities is already known by the time
-    // products render — otherwise every card would briefly show "Add to
-    // cart" even for items already in the cart, then flip to a stepper a
-    // moment later.
-    await loadCart();
+    // Products load first — the launch-gift dropdown and the "Add to
+    // cart" -> quantity-stepper swap both need activeProducts populated
+    // before they can render correctly. Loading cart first (an earlier
+    // attempt to avoid a brief "Add to cart" flash) broke the gift
+    // dropdown instead, which is the worse bug — correctness wins here.
     await loadProducts();
+    await loadCart();
   }
 
   async function loadProducts() {
