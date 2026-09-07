@@ -74,15 +74,9 @@ window.addEventListener("load", () => {
   }
 
   function setupTabs() {
-    document.querySelectorAll(".auth-tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".auth-tab").forEach((t) => {
-          t.classList.remove("active");
-          t.setAttribute("aria-selected", "false");
-        });
-        tab.classList.add("active");
-        tab.setAttribute("aria-selected", "true");
-        const isLogin = tab.dataset.tab === "login";
+    document.querySelectorAll(".auth-switch-link").forEach((link) => {
+      link.addEventListener("click", () => {
+        const isLogin = link.dataset.tab === "login";
         document.getElementById("loginForm").hidden = !isLogin;
         document.getElementById("signupForm").hidden = isLogin;
       });
@@ -105,7 +99,7 @@ window.addEventListener("load", () => {
           }),
         });
         setSession(result.token, result.name, result.email);
-        await showDashboard();
+        await redirectAfterAuth();
       } catch (error) {
         note.textContent = error.message;
         note.classList.add("error");
@@ -130,12 +124,24 @@ window.addEventListener("load", () => {
           }),
         });
         setSession(result.token, result.name, result.email);
-        await showDashboard();
+        await redirectAfterAuth();
       } catch (error) {
         note.textContent = error.message;
         note.classList.add("error");
       }
     });
+  }
+
+  // Sent here from checkout with ?next=checkout when they weren't signed
+  // in — after successfully signing in/up, send them straight back to the
+  // cart instead of parking them on the account dashboard.
+  async function redirectAfterAuth() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("next") === "checkout") {
+      window.location.href = "collections.html#cart";
+      return;
+    }
+    await showDashboard();
   }
 
   function setupLogout() {

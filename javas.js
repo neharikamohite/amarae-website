@@ -1124,6 +1124,16 @@ window.addEventListener("load", () => {
 
   function attachCheckout() {
     document.querySelector(".checkout-btn")?.addEventListener("click", async () => {
+      // Deliberately requiring an account before checkout, unlike guest
+      // checkout on most large stores — every order stays tied to a real
+      // account this way, which matters more at this stage than the extra
+      // step costs in drop-off.
+      if (!localStorage.getItem("amaraeAuthToken")) {
+        showCheckoutNote("Please sign in or create an account to check out.");
+        window.location.href = "account.html?next=checkout";
+        return;
+      }
+
       const payload = {
         sessionId,
         customerName: document.getElementById("customerName")?.value.trim(),
@@ -1252,12 +1262,32 @@ window.addEventListener("load", () => {
           <li>We confirm and ship within 2-4 days</li>
         </ol>
 
-        <a class="primary-btn order-confirmed-whatsapp" href="${buildReservationWhatsAppUrl(order, payload)}" target="_blank" rel="noopener">Message us on WhatsApp</a>
+        <button type="button" class="primary-btn order-confirmed-paid" id="orderConfirmedPaid" data-order-id="${order.id}">I've Paid</button>
+        <p class="order-confirmed-paid-note" id="orderConfirmedPaidNote"></p>
+        <a class="secondary-btn order-confirmed-whatsapp" href="${buildReservationWhatsAppUrl(order, payload)}" target="_blank" rel="noopener">Message us on WhatsApp</a>
         <button type="button" class="secondary-btn order-confirmed-continue" id="orderConfirmedContinue">Continue shopping</button>
       </div>
     `;
 
     document.getElementById("orderConfirmedContinue")?.addEventListener("click", closeOrderConfirmedModal);
+    document.getElementById("orderConfirmedPaid")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const note = document.getElementById("orderConfirmedPaidNote");
+      button.disabled = true;
+      button.textContent = "Marking…";
+      try {
+        await api(`/api/orders/${button.dataset.orderId}/claim-paid`, { method: "PATCH" });
+        button.textContent = "✓ Marked as paid";
+        if (note) note.textContent = "Thanks — we'll confirm and start packing your order shortly.";
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = "I've Paid";
+        if (note) {
+          note.textContent = "Couldn't reach the server — message us on WhatsApp instead so we know to check.";
+          note.classList.add("error");
+        }
+      }
+    });
     modal.classList.add("open");
     document.body.classList.add("modal-open");
   }

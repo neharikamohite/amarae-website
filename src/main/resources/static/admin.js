@@ -165,6 +165,11 @@ window.addEventListener("load", () => {
           <div>
             <strong>Order #${order.id}</strong>
             <span class="order-status order-status-${escapeHtml(order.status.toLowerCase())}">${escapeHtml(order.status)}</span>
+            ${
+              order.paymentClaimedAt && !["PAID", "SHIPPED", "DELIVERED"].includes(order.status)
+                ? `<span class="paid-claim-badge" title="Customer tapped &quot;I've Paid&quot; on ${formatDate(order.paymentClaimedAt)} — unverified, check your UPI account">Customer says: Paid</span>`
+                : ""
+            }
           </div>
           <div class="admin-order-head-right">
             <span>${formatDate(order.createdAt)}</span>

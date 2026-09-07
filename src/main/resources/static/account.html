@@ -37,12 +37,8 @@
       <h1 class="page-title" id="accountHeading">My Account</h1>
 
       <section class="account-auth" id="accountAuth">
-        <div class="auth-tabs" role="tablist">
-          <button type="button" class="auth-tab active" data-tab="login" role="tab" aria-selected="true">Sign in</button>
-          <button type="button" class="auth-tab" data-tab="signup" role="tab" aria-selected="false">Create account</button>
-        </div>
-
         <form class="auth-form" id="loginForm">
+          <h2 class="auth-form-title">Sign in</h2>
           <label>
             Email address
             <input id="loginEmail" type="email" placeholder="you@example.com" required />
@@ -53,9 +49,11 @@
           </label>
           <button type="submit" class="primary-btn">Sign in</button>
           <p class="auth-note" id="loginNote"></p>
+          <p class="auth-switch">Don't have an account? <button type="button" class="auth-switch-link" data-tab="signup">Create one</button></p>
         </form>
 
         <form class="auth-form" id="signupForm" hidden>
+          <h2 class="auth-form-title">Create account</h2>
           <label>
             Full name
             <input id="signupName" type="text" placeholder="Your name" required />
@@ -70,6 +68,7 @@
           </label>
           <button type="submit" class="primary-btn">Create account</button>
           <p class="auth-note" id="signupNote"></p>
+          <p class="auth-switch">Already have an account? <button type="button" class="auth-switch-link" data-tab="login">Sign in</button></p>
         </form>
       </section>
 

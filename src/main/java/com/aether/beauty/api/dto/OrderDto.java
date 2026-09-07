@@ -19,6 +19,7 @@ public record OrderDto(
   String trackingCourier,
   String trackingNumber,
   String trackingUrl,
+  Instant paymentClaimedAt,
   Instant createdAt,
   List<OrderLineDto> lines
 ) {}

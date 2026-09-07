@@ -15,6 +15,7 @@ import com.aether.beauty.realtime.RealtimeEventService;
 import com.aether.beauty.shipping.ShippingService;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,6 +106,21 @@ public class OrderService {
     paymentTransactionRepository.deleteByOrderId(orderId);
     customerOrderRepository.deleteById(orderId);
     realtimeEventService.publish("orders", orderId);
+  }
+
+  // Customer-facing, unauthenticated by design — this just flags an order
+  // for the admin to check, it never marks anything as actually paid. Low
+  // stakes even if misused: worst case, the admin checks their UPI
+  // account for an order that wasn't really paid and finds nothing.
+  @Transactional
+  public CustomerOrder markPaymentClaimed(Long orderId) {
+    CustomerOrder order = customerOrderRepository
+      .findById(orderId)
+      .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+    order.setPaymentClaimedAt(Instant.now());
+    CustomerOrder saved = customerOrderRepository.save(order);
+    realtimeEventService.publish("orders", saved.getId());
+    return saved;
   }
 
   @Transactional

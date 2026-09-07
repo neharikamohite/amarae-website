@@ -101,6 +101,7 @@ public class ApiMapper {
       order.getTrackingCourier(),
       order.getTrackingNumber(),
       order.getTrackingUrl(),
+      order.getPaymentClaimedAt(),
       order.getCreatedAt(),
       lines
     );

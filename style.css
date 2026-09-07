@@ -1222,6 +1222,23 @@ body.modal-open {
   line-height: 1.7;
 }
 
+.order-confirmed-paid {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.order-confirmed-paid-note {
+  min-height: 14px;
+  margin-bottom: 14px;
+  font-size: 0.78rem;
+  color: #21715d;
+}
+
+.order-confirmed-paid-note.error {
+  color: #b3261e;
+}
+
 .order-confirmed-whatsapp {
   display: block;
   width: 100%;
@@ -2213,6 +2230,11 @@ footer {
   gap: 14px;
 }
 
+.auth-form-title {
+  font-size: 1.15rem;
+  margin-bottom: 2px;
+}
+
 .auth-form label {
   display: flex;
   flex-direction: column;
@@ -2245,6 +2267,24 @@ footer {
 
 .auth-note.error {
   color: #b3261e;
+}
+
+.auth-switch {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.auth-switch-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--clay);
+  font-weight: 700;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .account-dashboard {
@@ -2483,6 +2523,20 @@ footer {
 .order-status-refunded,
 .order-status-cancelled,
 .order-status-failed { background: rgba(179, 38, 30, 0.12); color: #b3261e; }
+
+.paid-claim-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: rgba(33, 113, 93, 0.16);
+  color: #21715d;
+  cursor: help;
+}
 .order-status-created,
 .order-status-payment_pending { background: rgba(24, 23, 21, 0.08); color: var(--muted); }
 

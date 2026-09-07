@@ -86,6 +86,13 @@ public class CustomerOrder {
 
   private String trackingUrl;
 
+  // Set when the customer taps "I've paid" after scanning the QR — an
+  // unverified self-report, not proof of payment. The admin still checks
+  // their actual UPI account and marks the order PAID manually; this just
+  // flags which orders to check first instead of waiting on a WhatsApp
+  // message.
+  private Instant paymentClaimedAt;
+
   private Instant createdAt = Instant.now();
 
   @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -273,6 +280,14 @@ public class CustomerOrder {
 
   public void setTrackingUrl(String trackingUrl) {
     this.trackingUrl = trackingUrl;
+  }
+
+  public Instant getPaymentClaimedAt() {
+    return paymentClaimedAt;
+  }
+
+  public void setPaymentClaimedAt(Instant paymentClaimedAt) {
+    this.paymentClaimedAt = paymentClaimedAt;
   }
 
   public Instant getCreatedAt() {
