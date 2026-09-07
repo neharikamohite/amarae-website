@@ -7,6 +7,7 @@ import com.aether.beauty.cart.CartService;
 import com.aether.beauty.coupon.CouponResult;
 import com.aether.beauty.coupon.CouponService;
 import com.aether.beauty.payment.PaymentService;
+import com.aether.beauty.payment.PaymentTransactionRepository;
 import com.aether.beauty.product.Product;
 import com.aether.beauty.product.ProductService;
 import com.aether.beauty.realtime.RealtimeEventService;
@@ -28,6 +29,7 @@ public class OrderService {
   private final ProductService productService;
   private final ShippingService shippingService;
   private final CouponService couponService;
+  private final PaymentTransactionRepository paymentTransactionRepository;
 
   public OrderService(
     CustomerOrderRepository customerOrderRepository,
@@ -36,7 +38,8 @@ public class OrderService {
     RealtimeEventService realtimeEventService,
     ProductService productService,
     ShippingService shippingService,
-    CouponService couponService
+    CouponService couponService,
+    PaymentTransactionRepository paymentTransactionRepository
   ) {
     this.customerOrderRepository = customerOrderRepository;
     this.cartService = cartService;
@@ -45,6 +48,7 @@ public class OrderService {
     this.productService = productService;
     this.shippingService = shippingService;
     this.couponService = couponService;
+    this.paymentTransactionRepository = paymentTransactionRepository;
   }
 
   // Used only by the admin dashboard (authenticated) — every order, not
@@ -83,6 +87,20 @@ public class OrderService {
     CustomerOrder saved = customerOrderRepository.save(order);
     realtimeEventService.publish("orders", saved.getId());
     return saved;
+  }
+
+  // Admin-only, used for clearing test/junk orders. Payment transaction
+  // rows have to go first — they reference the order with no cascade
+  // configured on that side, so deleting the order directly would fail
+  // on the foreign key otherwise.
+  @Transactional
+  public void deleteOrder(Long orderId) {
+    if (!customerOrderRepository.existsById(orderId)) {
+      throw new EntityNotFoundException("Order not found");
+    }
+    paymentTransactionRepository.deleteByOrderId(orderId);
+    customerOrderRepository.deleteById(orderId);
+    realtimeEventService.publish("orders", orderId);
   }
 
   @Transactional

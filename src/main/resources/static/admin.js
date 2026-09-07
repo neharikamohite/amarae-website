@@ -166,7 +166,10 @@ window.addEventListener("load", () => {
             <strong>Order #${order.id}</strong>
             <span class="order-status order-status-${escapeHtml(order.status.toLowerCase())}">${escapeHtml(order.status)}</span>
           </div>
-          <span>${formatDate(order.createdAt)}</span>
+          <div class="admin-order-head-right">
+            <span>${formatDate(order.createdAt)}</span>
+            <button type="button" class="admin-delete-btn" data-order-id="${order.id}" aria-label="Delete order #${order.id}">Delete</button>
+          </div>
         </div>
 
         <div class="admin-order-body">
@@ -242,6 +245,27 @@ window.addEventListener("load", () => {
           note.classList.add("error");
         } finally {
           submitBtn.disabled = false;
+        }
+      });
+    });
+
+    document.querySelectorAll(".admin-delete-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const orderId = button.dataset.orderId;
+        const confirmed = window.confirm(
+          `Delete order #${orderId}? This can't be undone — only do this for test orders or junk, not real ones.`
+        );
+        if (!confirmed) return;
+
+        button.disabled = true;
+        button.textContent = "Deleting…";
+        try {
+          await api(`/api/admin/orders/${orderId}`, { method: "DELETE" });
+          await loadOrders();
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = "Delete";
+          window.alert(error.message);
         }
       });
     });

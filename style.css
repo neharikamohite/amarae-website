@@ -2265,6 +2265,33 @@ footer {
   font-size: 0.8rem;
 }
 
+.admin-order-head-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-delete-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: #b3261e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.admin-delete-btn:hover {
+  background: rgba(179, 38, 30, 0.08);
+}
+
+.admin-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .admin-order-body {
   display: grid;
   grid-template-columns: 1fr 1fr;

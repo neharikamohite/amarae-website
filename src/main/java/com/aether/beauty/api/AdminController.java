@@ -77,6 +77,15 @@ public class AdminController {
     return toAdminDto(order);
   }
 
+  @DeleteMapping("/orders/{id}")
+  public void deleteOrder(
+    @RequestHeader(value = "Authorization", required = false) String authorization,
+    @PathVariable Long id
+  ) {
+    adminAuthService.requireAdmin(AuthController.bearerToken(authorization));
+    orderService.deleteOrder(id);
+  }
+
   private AdminOrderDto toAdminDto(CustomerOrder order) {
     return new AdminOrderDto(
       apiMapper.toOrderDto(order),
