@@ -906,7 +906,7 @@ window.addEventListener("load", () => {
       // actually earned it — a cart with no 100 ml fragrance in it should
       // never be blocked waiting on a gift choice it was never offered.
       if (giftEligible && !payload.complimentaryProductId) {
-        showCheckoutNote("Choose your complimentary different 100 ml fragrance before proceeding to payment.");
+        showCheckoutNote("Choose your complimentary different 100 ml fragrance before reserving.");
         return;
       }
 
@@ -917,12 +917,57 @@ window.addEventListener("load", () => {
         });
         appliedCoupon = null;
         await loadCart();
-        showCheckoutNote(`Order #${order.id} is awaiting payment. Your cart will be kept until payment is verified.`);
-        if (order.paymentUrl) window.location.assign(order.paymentUrl);
+
+        if (order.paymentProvider === "razorpay" && order.paymentUrl) {
+          // Real payment gateway is live — send the shopper straight to
+          // secure checkout, same as a normal store.
+          showCheckoutNote(`Order #${order.id} is awaiting payment. Your cart will be kept until payment is verified.`);
+          window.location.assign(order.paymentUrl);
+          return;
+        }
+
+        // No live payment gateway yet — this is a manual reservation.
+        // The order already exists (with a real order number, visible in
+        // the admin dashboard as "Payment pending"); we just hand the
+        // customer to WhatsApp to confirm and pay by UPI instead of
+        // pretending a real online payment happened.
+        window.open(buildReservationWhatsAppUrl(order, payload), "_blank", "noopener");
+        showCheckoutNote(
+          `Order #${order.id} reserved — we've opened WhatsApp with your order details. Send that message to confirm, and we'll share our UPI QR code to complete payment.`
+        );
       } catch (error) {
         showCheckoutNote(error.message);
       }
     });
+  }
+
+  function buildReservationWhatsAppUrl(order, payload) {
+    const lines = order.lines
+      .map((line) => `${line.quantity} x ${line.productName} (${line.sizeMl}ml) — ${formatMoney(line.unitPrice * line.quantity)}`)
+      .join("\n");
+    const discountLine =
+      order.discountAmount > 0 ? `Discount (${order.couponCode || ""}): -${formatMoney(order.discountAmount)}\n` : "";
+    const message = [
+      "Hi! I'd like to reserve this order from AMARAÈ.",
+      "",
+      `Order #${order.id}`,
+      lines,
+      "",
+      `Subtotal: ${formatMoney(order.subtotal)}`,
+      discountLine.trim(),
+      `Shipping: ${formatMoney(order.shippingFee)}`,
+      `Total: ${formatMoney(order.total)}`,
+      "",
+      "Deliver to:",
+      payload.customerName,
+      `${payload.shippingAddressLine}, ${payload.shippingCity}, ${payload.shippingState} ${payload.shippingPinCode}`,
+      `Phone: ${payload.phone}`,
+      "",
+      "Please share your UPI QR code so I can complete payment.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    return `https://wa.me/919579222532?text=${encodeURIComponent(message)}`;
   }
 
   function getWishlist() {

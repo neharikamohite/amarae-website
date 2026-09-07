@@ -5,9 +5,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.Instant;
 
+// Table explicitly named "app_user", not "user" — "user" is a reserved
+// word in PostgreSQL (and several other SQL dialects), so letting
+// Hibernate default to the class name here made every CREATE TABLE and
+// foreign key statement touching this entity fail with a syntax error,
+// silently breaking signup/login and everything that references it.
 @Entity
+@Table(name = "app_user")
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
