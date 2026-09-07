@@ -1,7 +1,9 @@
 package com.aether.beauty.api;
 
 import com.aether.beauty.api.dto.AuthResponse;
+import com.aether.beauty.api.dto.ForgotPasswordRequest;
 import com.aether.beauty.api.dto.LoginRequest;
+import com.aether.beauty.api.dto.ResetPasswordRequest;
 import com.aether.beauty.api.dto.SignupRequest;
 import com.aether.beauty.api.dto.UserDto;
 import com.aether.beauty.auth.AuthService;
@@ -46,6 +48,16 @@ public class AuthController {
   public UserDto me(@RequestHeader(value = "Authorization", required = false) String authorization) {
     User user = authService.requireUser(bearerToken(authorization));
     return new UserDto(user.getId(), user.getName(), user.getEmail());
+  }
+
+  @PostMapping("/forgot-password")
+  public void forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    authService.requestPasswordReset(request.email());
+  }
+
+  @PostMapping("/reset-password")
+  public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    authService.resetPassword(request.token(), request.newPassword());
   }
 
   private AuthResponse toAuthResponse(AuthToken authToken) {

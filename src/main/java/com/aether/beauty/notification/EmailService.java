@@ -1,5 +1,6 @@
 package com.aether.beauty.notification;
 
+import com.aether.beauty.auth.User;
 import com.aether.beauty.order.CustomerOrder;
 import com.aether.beauty.order.OrderLine;
 import jakarta.mail.internet.MimeMessage;
@@ -66,6 +67,44 @@ public class EmailService {
       // A failed send should never undo or block a successful payment —
       // the order itself already went through.
       log.warn("Could not send order confirmation email for order {}: {}", order.getId(), ex.getMessage());
+    }
+  }
+
+  /**
+   * Returns whether an email was actually sent — false whenever SMTP
+   * isn't configured yet, which lets the caller log/track that this
+   * feature is currently a no-op without changing what the customer sees
+   * (the API response stays identical either way, so a caller can never
+   * use it to guess whether an email address has an account).
+   */
+  public boolean sendPasswordReset(User user, String resetLink) {
+    JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+    if (mailSender == null || fromAddress == null || fromAddress.isBlank()) {
+      log.info("Password reset email skipped for {} — SMTP is not configured yet.", user.getEmail());
+      return false;
+    }
+    try {
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+      helper.setFrom(fromAddress);
+      helper.setTo(user.getEmail());
+      helper.setSubject("Reset your AMARA\u00c8 password");
+      helper.setText(
+        "Hi " +
+        user.getName() +
+        ",\n\n" +
+        "Someone (hopefully you) asked to reset your AMARA\u00c8 account password. Click the link below to choose a new one:\n\n" +
+        resetLink +
+        "\n\n" +
+        "This link expires in 1 hour. If you didn't request this, you can safely ignore this email — your password won't change.\n\n" +
+        "With scent,\nAMARA\u00c8 Formulations\n",
+        false
+      );
+      mailSender.send(message);
+      return true;
+    } catch (Exception ex) {
+      log.warn("Could not send password reset email for {}: {}", user.getEmail(), ex.getMessage());
+      return false;
     }
   }
 

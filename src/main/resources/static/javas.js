@@ -1212,11 +1212,14 @@ window.addEventListener("load", () => {
   }
 
   function buildUpiPaymentUrl(order) {
-    // Built manually with encodeURIComponent rather than URLSearchParams —
-    // URLSearchParams encodes spaces as "+", which most UPI apps handle
-    // fine but not all; this is the stricter %20-style encoding used in
-    // virtually every UPI deep-link reference implementation, and avoids
-    // relying on every app's parser being equally forgiving.
+    // Only spaces get encoded (to %20) — everything else, including the
+    // "@" in the UPI ID, is left exactly as-is. The previous version used
+    // encodeURIComponent on every field, which also encodes "@" into
+    // "%40" — turning a real UPI ID like "name@bank" into something no
+    // UPI app recognizes as a valid payee, which is almost certainly why
+    // every app fell back to its account setup flow instead of showing a
+    // normal payment screen. Every real UPI deep link keeps "@" bare.
+    const encodeUpiValue = (value) => String(value).replace(/ /g, "%20");
     const params = [
       ["pa", upiPayeeId],
       ["pn", upiPayeeName],
@@ -1224,7 +1227,7 @@ window.addEventListener("load", () => {
       ["cu", "INR"],
       ["tn", `AMARAE Order ${order.id}`],
     ]
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .map(([key, value]) => `${key}=${encodeUpiValue(value)}`)
       .join("&");
     return `upi://pay?${params}`;
   }

@@ -203,6 +203,12 @@ h1, h2, h3, h4, h5, .page-title, .section-heading h2 {
   transition: background 0.22s ease, color 0.22s ease, transform 0.22s ease;
 }
 
+.nav-heart {
+  font-size: 1.15rem !important;
+  padding: 0 10px !important;
+  letter-spacing: 0 !important;
+}
+
 .nav-links a:hover,
 .nav-links a.active-page {
   background: var(--ink);
@@ -2244,6 +2250,13 @@ footer {
   margin-bottom: 2px;
 }
 
+.auth-form-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-top: -6px;
+}
+
 .auth-form label {
   display: flex;
   flex-direction: column;
@@ -2478,6 +2491,21 @@ footer {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.order-card:hover,
+.order-card:focus-visible {
+  border-color: var(--clay);
+  transform: translateY(-1px);
+}
+
+.order-card-hint {
+  margin-top: 8px;
+  color: var(--clay);
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .order-card-head {

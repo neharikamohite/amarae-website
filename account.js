@@ -2,6 +2,12 @@ window.addEventListener("load", () => {
   const tokenKey = "amaraeAuthToken";
   const nameKey = "amaraeAuthName";
   const emailKey = "amaraeAuthEmail";
+  let orderHistoryData = [];
+
+  // Where UPI payments actually land — keep this in sync with the same
+  // constant in javas.js if it ever changes.
+  const upiPayeeId = "neharikamohite@okhdfcbank";
+  const upiPayeeName = "AMARAE Formulations";
 
   init();
 
@@ -9,8 +15,23 @@ window.addEventListener("load", () => {
     setupTabs();
     setupLoginForm();
     setupSignupForm();
+    setupForgotPasswordForm();
+    setupResetPasswordForm();
     setupAddressForm();
     setupLogout();
+    initOrderDetailModal();
+
+    // A password-reset email link lands here with ?resetToken=... —
+    // that takes priority over the normal signed-in/signed-out check.
+    const resetToken = new URLSearchParams(window.location.search).get("resetToken");
+    if (resetToken) {
+      document.getElementById("accountHeading").textContent = "Reset your password";
+      document.getElementById("accountAuth").hidden = false;
+      document.getElementById("accountDashboard").hidden = true;
+      showAuthForm("reset");
+      return;
+    }
+
     refreshAuthState();
   }
 
@@ -76,10 +97,16 @@ window.addEventListener("load", () => {
   function setupTabs() {
     document.querySelectorAll(".auth-switch-link").forEach((link) => {
       link.addEventListener("click", () => {
-        const isLogin = link.dataset.tab === "login";
-        document.getElementById("loginForm").hidden = !isLogin;
-        document.getElementById("signupForm").hidden = isLogin;
+        showAuthForm(link.dataset.tab);
       });
+    });
+  }
+
+  function showAuthForm(name) {
+    const forms = { login: "loginForm", signup: "signupForm", forgot: "forgotPasswordForm", reset: "resetPasswordForm" };
+    Object.entries(forms).forEach(([key, id]) => {
+      const form = document.getElementById(id);
+      if (form) form.hidden = key !== name;
     });
   }
 
@@ -128,6 +155,64 @@ window.addEventListener("load", () => {
       } catch (error) {
         note.textContent = error.message;
         note.classList.add("error");
+      }
+    });
+  }
+
+  function setupForgotPasswordForm() {
+    const form = document.getElementById("forgotPasswordForm");
+    const note = document.getElementById("forgotNote");
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      note.textContent = "";
+      note.classList.remove("error");
+      const submitBtn = form.querySelector("button[type=submit]");
+      submitBtn.disabled = true;
+      try {
+        await api("/api/auth/forgot-password", {
+          method: "POST",
+          body: JSON.stringify({ email: document.getElementById("forgotEmail").value.trim() }),
+        });
+        // Deliberately the same message whether or not that email has an
+        // account — matches the backend's account-enumeration protection.
+        note.textContent = "If an account exists with that email, we've sent a password reset link.";
+        form.reset();
+      } catch (error) {
+        note.textContent = error.message;
+        note.classList.add("error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  }
+
+  function setupResetPasswordForm() {
+    const form = document.getElementById("resetPasswordForm");
+    const note = document.getElementById("resetNote");
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      note.textContent = "";
+      note.classList.remove("error");
+      const submitBtn = form.querySelector("button[type=submit]");
+      submitBtn.disabled = true;
+      try {
+        const token = new URLSearchParams(window.location.search).get("resetToken");
+        await api("/api/auth/reset-password", {
+          method: "POST",
+          body: JSON.stringify({ token, newPassword: document.getElementById("resetPassword").value }),
+        });
+        note.textContent = "Password updated — you can now sign in with your new password.";
+        form.reset();
+        form.hidden = true;
+        // Clean the token out of the URL and drop back to a normal sign-in.
+        window.history.replaceState({}, "", "account.html");
+        document.getElementById("accountHeading").textContent = "My Account";
+        showAuthForm("login");
+      } catch (error) {
+        note.textContent = error.message;
+        note.classList.add("error");
+      } finally {
+        submitBtn.disabled = false;
       }
     });
   }
@@ -261,12 +346,23 @@ window.addEventListener("load", () => {
     if (!list) return;
     try {
       const orders = await api("/api/account/orders");
+      orderHistoryData = orders;
       list.innerHTML = orders.length
         ? orders.map(orderCardTemplate).join("")
         : '<p class="reviews-empty">No orders yet — your order history will show up here once you\'ve placed one.</p>';
+      attachOrderCardHandlers();
     } catch (error) {
       list.innerHTML = '<p class="reviews-empty">Could not load your order history right now.</p>';
     }
+  }
+
+  function attachOrderCardHandlers() {
+    document.querySelectorAll(".order-card[data-order-id]").forEach((card) => {
+      card.addEventListener("click", () => {
+        const order = orderHistoryData.find((item) => String(item.id) === card.dataset.orderId);
+        if (order) showOrderDetailModal(order);
+      });
+    });
   }
 
   function orderCardTemplate(order) {
@@ -279,8 +375,9 @@ window.addEventListener("load", () => {
             order.trackingUrl ? ` \u00b7 <a href="${escapeHtml(order.trackingUrl)}" target="_blank" rel="noopener">Track</a>` : ""
           }</p>`
         : "";
+    const isPending = order.status === "CREATED" || order.status === "PAYMENT_PENDING";
     return `
-      <article class="order-card">
+      <article class="order-card" data-order-id="${order.id}" role="button" tabindex="0">
         <div class="order-card-head">
           <strong>Order #${order.id}</strong>
           <span class="order-status order-status-${escapeHtml(order.status.toLowerCase())}">${escapeHtml(order.status)}</span>
@@ -291,8 +388,131 @@ window.addEventListener("load", () => {
           <span>${formatDate(order.createdAt)}</span>
           <strong>${formatMoney(order.total)}</strong>
         </div>
+        <p class="order-card-hint">${isPending ? "Tap to complete payment" : "Tap for details"}</p>
       </article>
     `;
+  }
+
+  function buildUpiPaymentUrl(order) {
+    // Same encoding rules as javas.js's version — only spaces become
+    // %20, "@" stays bare, since that's what UPI apps actually expect.
+    const encodeUpiValue = (value) => String(value).replace(/ /g, "%20");
+    const params = [
+      ["pa", upiPayeeId],
+      ["pn", upiPayeeName],
+      ["am", Number(order.total).toFixed(2)],
+      ["cu", "INR"],
+      ["tn", `AMARAE Order ${order.id}`],
+    ]
+      .map(([key, value]) => `${key}=${encodeUpiValue(value)}`)
+      .join("&");
+    return `upi://pay?${params}`;
+  }
+
+  function buildResumeWhatsAppUrl(order) {
+    const message = [
+      "Hi! I'd like to confirm payment for my AMARAE order.",
+      "",
+      `Order #${order.id}`,
+      `Total: ${formatMoney(order.total)}`,
+      "",
+      "I've paid via the QR code on the site — please confirm.",
+    ].join("\n");
+    return `https://wa.me/919579222532?text=${encodeURIComponent(message)}`;
+  }
+
+  function showOrderDetailModal(order) {
+    const modal = document.getElementById("orderDetailModal");
+    const body = document.getElementById("orderDetailBody");
+    if (!modal || !body) return;
+
+    const items = order.lines
+      .map((line) => `<li>${line.quantity} &times; ${escapeHtml(line.productName)} (${line.sizeMl}ml)</li>`)
+      .join("");
+    const isPending = order.status === "CREATED" || order.status === "PAYMENT_PENDING";
+    const tracking =
+      order.trackingCourier || order.trackingNumber
+        ? `<p class="order-confirmed-id">${escapeHtml(order.trackingCourier || "Courier")} \u2014 ${escapeHtml(order.trackingNumber || "")}${
+            order.trackingUrl ? ` \u00b7 <a href="${escapeHtml(order.trackingUrl)}" target="_blank" rel="noopener">Track</a>` : ""
+          }</p>`
+        : "";
+
+    const statusMessages = {
+      PAID: "Payment received \u2014 we'll pack and ship your order soon.",
+      SHIPPED: "Your order is on its way.",
+      DELIVERED: "This order has been delivered.",
+      CANCELLED: "This order was cancelled.",
+      REFUNDED: "This order was refunded.",
+      FAILED: "This order could not be completed.",
+    };
+
+    if (isPending) {
+      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(buildUpiPaymentUrl(order))}`;
+      body.innerHTML = `
+        <div class="order-confirmed">
+          <h2>Complete your payment</h2>
+          <p class="order-confirmed-id">Order #${order.id}</p>
+          <ul class="order-confirmed-items">${items}</ul>
+          <div class="order-confirmed-total"><span>Total due</span><strong>${formatMoney(order.total)}</strong></div>
+          <div class="order-confirmed-qr">
+            <img src="${qrImageUrl}" alt="Scan to pay ${formatMoney(order.total)} via UPI" width="200" height="200" />
+            <p>Scan with any UPI app (GPay, PhonePe, Paytm...)</p>
+            <p class="order-confirmed-upi-id">or pay manually to: <strong>${escapeHtml(upiPayeeId)}</strong></p>
+          </div>
+          <button type="button" class="primary-btn order-confirmed-paid" id="orderDetailPaid" data-order-id="${order.id}">I've Paid</button>
+          <p class="order-confirmed-paid-note" id="orderDetailPaidNote"></p>
+          <a class="secondary-btn order-confirmed-whatsapp" href="${buildResumeWhatsAppUrl(order)}" target="_blank" rel="noopener">Message us on WhatsApp</a>
+        </div>
+      `;
+      document.getElementById("orderDetailPaid")?.addEventListener("click", async (event) => {
+        const button = event.currentTarget;
+        const note = document.getElementById("orderDetailPaidNote");
+        button.disabled = true;
+        button.textContent = "Marking\u2026";
+        try {
+          await api(`/api/orders/${button.dataset.orderId}/claim-paid`, { method: "PATCH" });
+          button.textContent = "\u2713 Marked as paid";
+          if (note) note.textContent = "Thanks \u2014 we'll confirm and start packing your order shortly.";
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = "I've Paid";
+          if (note) {
+            note.textContent = "Couldn't reach the server \u2014 message us on WhatsApp instead.";
+            note.classList.add("error");
+          }
+        }
+      });
+    } else {
+      body.innerHTML = `
+        <div class="order-confirmed">
+          <h2>Order #${order.id}</h2>
+          <p class="order-confirmed-id">${escapeHtml(statusMessages[order.status] || order.status)}</p>
+          <ul class="order-confirmed-items">${items}</ul>
+          <div class="order-confirmed-total"><span>Total</span><strong>${formatMoney(order.total)}</strong></div>
+          ${tracking}
+        </div>
+      `;
+    }
+
+    modal.classList.add("open");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeOrderDetailModal() {
+    const modal = document.getElementById("orderDetailModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    document.body.classList.remove("modal-open");
+  }
+
+  function initOrderDetailModal() {
+    const modal = document.getElementById("orderDetailModal");
+    if (!modal) return;
+    modal.querySelector(".modal-backdrop")?.addEventListener("click", closeOrderDetailModal);
+    document.getElementById("orderDetailClose")?.addEventListener("click", closeOrderDetailModal);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeOrderDetailModal();
+    });
   }
 
   async function loadWishlist() {

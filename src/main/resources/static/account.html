@@ -25,6 +25,7 @@
           <li><a href="collections.html">Shop</a></li>
           <li><a href="findFragrance.html">Find Match</a></li>
           <li><a href="chemistry.html">Notes</a></li>
+          <li><a href="account.html#wishlist" class="nav-heart" aria-label="Wishlist">&#9825;</a></li>
           <li><a href="account.html" class="active-page">Account</a></li>
           <li><a href="collections.html#cart">Cart <span class="cart-count">0</span></a></li>
         </ul>
@@ -49,7 +50,30 @@
           </label>
           <button type="submit" class="primary-btn">Sign in</button>
           <p class="auth-note" id="loginNote"></p>
+          <p class="auth-switch"><button type="button" class="auth-switch-link" data-tab="forgot">Forgot password?</button></p>
           <p class="auth-switch">Don't have an account? <button type="button" class="auth-switch-link" data-tab="signup">Create one</button></p>
+        </form>
+
+        <form class="auth-form" id="forgotPasswordForm" hidden>
+          <h2 class="auth-form-title">Reset your password</h2>
+          <p class="auth-form-hint">Enter your account email and we'll send you a link to set a new password.</p>
+          <label>
+            Email address
+            <input id="forgotEmail" type="email" placeholder="you@example.com" required />
+          </label>
+          <button type="submit" class="primary-btn">Send reset link</button>
+          <p class="auth-note" id="forgotNote"></p>
+          <p class="auth-switch"><button type="button" class="auth-switch-link" data-tab="login">Back to sign in</button></p>
+        </form>
+
+        <form class="auth-form" id="resetPasswordForm" hidden>
+          <h2 class="auth-form-title">Choose a new password</h2>
+          <label>
+            New password
+            <input id="resetPassword" type="password" placeholder="At least 8 characters" required minlength="8" />
+          </label>
+          <button type="submit" class="primary-btn">Set new password</button>
+          <p class="auth-note" id="resetNote"></p>
         </form>
 
         <form class="auth-form" id="signupForm" hidden>
@@ -104,7 +128,7 @@
             </div>
           </section>
 
-          <section class="account-block account-block-wide" aria-label="Wishlist">
+          <section class="account-block account-block-wide" id="wishlist" aria-label="Wishlist">
             <h2>My Wishlist</h2>
             <div class="wishlist-grid" id="wishlistGrid">
               <p class="reviews-empty">Loading your wishlist…</p>
@@ -120,6 +144,14 @@
       <div class="footer-links"><a href="about.html">About Us</a><a href="privacy-policy.html">Privacy</a><a href="terms-and-conditions.html">Terms</a><a href="shipping-delivery.html">Shipping</a><a href="cancellation-refund.html">Returns</a></div>
       <small>&copy; 2026 AMARAÈ Formulations. Business registration and GST details will be added once finalised.</small>
     </footer>
+
+    <div class="product-modal" id="orderDetailModal" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel order-confirmed-panel" role="dialog" aria-modal="true" aria-label="Order details">
+        <button class="modal-close" type="button" id="orderDetailClose" aria-label="Close">✕</button>
+        <div class="modal-body" id="orderDetailBody"></div>
+      </div>
+    </div>
 
     <script src="account.js"></script>
   </body>

@@ -36,6 +36,11 @@ public class User {
 
   private Instant createdAt = Instant.now();
 
+  // Set only while a password-reset email is pending — cleared the
+  // moment it's used (or replaced by a newer request).
+  private String resetToken;
+  private Instant resetTokenExpiresAt;
+
   public Long getId() {
     return id;
   }
@@ -82,5 +87,21 @@ public class User {
 
   public void setCreatedAt(Instant createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public String getResetToken() {
+    return resetToken;
+  }
+
+  public void setResetToken(String resetToken) {
+    this.resetToken = resetToken;
+  }
+
+  public Instant getResetTokenExpiresAt() {
+    return resetTokenExpiresAt;
+  }
+
+  public void setResetTokenExpiresAt(Instant resetTokenExpiresAt) {
+    this.resetTokenExpiresAt = resetTokenExpiresAt;
   }
 }
