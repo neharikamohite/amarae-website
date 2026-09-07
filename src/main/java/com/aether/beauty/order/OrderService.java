@@ -2,6 +2,7 @@ package com.aether.beauty.order;
 
 import com.aether.beauty.api.dto.CheckoutRequest;
 import com.aether.beauty.auth.User;
+import com.aether.beauty.auth.UserRepository;
 import com.aether.beauty.cart.CartItem;
 import com.aether.beauty.cart.CartService;
 import com.aether.beauty.coupon.CouponResult;
@@ -30,6 +31,7 @@ public class OrderService {
   private final ShippingService shippingService;
   private final CouponService couponService;
   private final PaymentTransactionRepository paymentTransactionRepository;
+  private final UserRepository userRepository;
 
   public OrderService(
     CustomerOrderRepository customerOrderRepository,
@@ -39,7 +41,8 @@ public class OrderService {
     ProductService productService,
     ShippingService shippingService,
     CouponService couponService,
-    PaymentTransactionRepository paymentTransactionRepository
+    PaymentTransactionRepository paymentTransactionRepository,
+    UserRepository userRepository
   ) {
     this.customerOrderRepository = customerOrderRepository;
     this.cartService = cartService;
@@ -49,6 +52,7 @@ public class OrderService {
     this.shippingService = shippingService;
     this.couponService = couponService;
     this.paymentTransactionRepository = paymentTransactionRepository;
+    this.userRepository = userRepository;
   }
 
   // Used only by the admin dashboard (authenticated) — every order, not
@@ -115,7 +119,14 @@ public class OrderService {
     shippingService.requireValidIndianAddress(request.shippingPinCode(), request.phone());
 
     CustomerOrder order = new CustomerOrder();
-    order.setUser(user);
+    // "user" arrives from AuthService.requireUser(), which runs outside
+    // any transaction, so the entity it returns is detached by the time
+    // we're in this method's own transaction. Assigning it directly could
+    // make Hibernate treat it as a transient object needing to be
+    // persisted (it isn't — it already exists). getReferenceById() gets a
+    // lightweight proxy scoped to *this* transaction instead, which is
+    // the correct way to attach an existing row as a foreign key.
+    order.setUser(user == null ? null : userRepository.getReferenceById(user.getId()));
     order.setSessionId(request.sessionId());
     order.setCustomerName(request.customerName());
     order.setEmail(request.email());

@@ -8,6 +8,7 @@ import com.aether.beauty.auth.AuthService;
 import com.aether.beauty.auth.SavedAddress;
 import com.aether.beauty.auth.SavedAddressRepository;
 import com.aether.beauty.auth.User;
+import com.aether.beauty.auth.UserRepository;
 import com.aether.beauty.auth.WishlistItem;
 import com.aether.beauty.auth.WishlistItemRepository;
 import com.aether.beauty.order.CustomerOrderRepository;
@@ -34,6 +35,7 @@ public class AccountController {
   private final SavedAddressRepository savedAddressRepository;
   private final WishlistItemRepository wishlistItemRepository;
   private final ProductService productService;
+  private final UserRepository userRepository;
   private final ApiMapper apiMapper;
 
   public AccountController(
@@ -42,6 +44,7 @@ public class AccountController {
     SavedAddressRepository savedAddressRepository,
     WishlistItemRepository wishlistItemRepository,
     ProductService productService,
+    UserRepository userRepository,
     ApiMapper apiMapper
   ) {
     this.authService = authService;
@@ -49,6 +52,7 @@ public class AccountController {
     this.savedAddressRepository = savedAddressRepository;
     this.wishlistItemRepository = wishlistItemRepository;
     this.productService = productService;
+    this.userRepository = userRepository;
     this.apiMapper = apiMapper;
   }
 
@@ -70,13 +74,16 @@ public class AccountController {
   }
 
   @PostMapping("/addresses")
+  @Transactional
   public SavedAddressDto addAddress(
     @RequestHeader(value = "Authorization", required = false) String authorization,
     @Valid @RequestBody SavedAddressRequest request
   ) {
     User user = authService.requireUser(AuthController.bearerToken(authorization));
     SavedAddress address = new SavedAddress();
-    address.setUser(user);
+    // See OrderService.checkout() for why getReferenceById() is used
+    // instead of the detached "user" entity directly.
+    address.setUser(userRepository.getReferenceById(user.getId()));
     address.setLabel(request.label().trim());
     address.setAddressLine(request.addressLine().trim());
     address.setCity(request.city().trim());
@@ -115,6 +122,7 @@ public class AccountController {
   }
 
   @PostMapping("/wishlist/{productId}")
+  @Transactional
   public void addToWishlist(
     @RequestHeader(value = "Authorization", required = false) String authorization,
     @PathVariable Long productId
@@ -125,7 +133,7 @@ public class AccountController {
     }
     Product product = productService.requireProduct(productId);
     WishlistItem item = new WishlistItem();
-    item.setUser(user);
+    item.setUser(userRepository.getReferenceById(user.getId()));
     item.setProduct(product);
     wishlistItemRepository.save(item);
   }
