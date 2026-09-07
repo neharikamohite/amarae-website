@@ -1212,14 +1212,21 @@ window.addEventListener("load", () => {
   }
 
   function buildUpiPaymentUrl(order) {
-    const params = new URLSearchParams({
-      pa: upiPayeeId,
-      pn: upiPayeeName,
-      am: Number(order.total).toFixed(2),
-      cu: "INR",
-      tn: `AMARAE Order #${order.id}`,
-    });
-    return `upi://pay?${params.toString()}`;
+    // Built manually with encodeURIComponent rather than URLSearchParams —
+    // URLSearchParams encodes spaces as "+", which most UPI apps handle
+    // fine but not all; this is the stricter %20-style encoding used in
+    // virtually every UPI deep-link reference implementation, and avoids
+    // relying on every app's parser being equally forgiving.
+    const params = [
+      ["pa", upiPayeeId],
+      ["pn", upiPayeeName],
+      ["am", Number(order.total).toFixed(2)],
+      ["cu", "INR"],
+      ["tn", `AMARAE Order ${order.id}`],
+    ]
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join("&");
+    return `upi://pay?${params}`;
   }
 
   function showOrderConfirmedModal(order, payload) {
