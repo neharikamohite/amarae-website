@@ -7,7 +7,7 @@ window.addEventListener("load", () => {
   // Where UPI payments actually land — keep this in sync with the same
   // constant in javas.js if it ever changes.
   const upiPayeeId = "neharikamohite@okhdfcbank";
-  const upiPayeeName = "AMARAE Formulations";
+  const upiPayeeName = "Neharika Mohite";
 
   init();
 

@@ -14,7 +14,13 @@ window.addEventListener("load", () => {
   // Where UPI payments actually land — update this if the business
   // account/UPI ID ever changes.
   const upiPayeeId = "neharikamohite@okhdfcbank";
-  const upiPayeeName = "AMARAE Formulations";
+  // Set to the real, verified name on this UPI account — the "pn" field
+  // is only ever a hint, but some UPI apps cross-check it against the
+  // bank's actual registered name for that ID and can reject or flag the
+  // request if they don't match. Since this VPA is a personal account
+  // (not a registered business one), it has to say the real name here,
+  // not a business name.
+  const upiPayeeName = "Neharika Mohite";
 
   const fallbackProducts = [
     perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40, 100),
