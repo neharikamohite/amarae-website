@@ -400,6 +400,7 @@ window.addEventListener("load", () => {
     const params = [
       ["pa", upiPayeeId],
       ["pn", upiPayeeName],
+      ["tr", `AMARAE${order.id}${Date.now()}`],
       ["am", Number(order.total).toFixed(2)],
       ["cu", "INR"],
       ["tn", `AMARAE Order ${order.id}`],

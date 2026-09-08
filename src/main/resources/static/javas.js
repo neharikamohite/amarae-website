@@ -1229,6 +1229,13 @@ window.addEventListener("load", () => {
     const params = [
       ["pa", upiPayeeId],
       ["pn", upiPayeeName],
+      // "tr" (transaction reference) — a unique ID for this specific
+      // payment attempt. Optional in the UPI spec, but Google Pay in
+      // particular is known to be stricter about wanting one on QR-code
+      // scans than other apps (PhonePe scanning the same link worked
+      // fine without it) — worth including since it's a real, standard
+      // UPI field, not a workaround.
+      ["tr", `AMARAE${order.id}${Date.now()}`],
       ["am", Number(order.total).toFixed(2)],
       ["cu", "INR"],
       ["tn", `AMARAE Order ${order.id}`],
