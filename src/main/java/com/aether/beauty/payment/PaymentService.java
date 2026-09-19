@@ -18,6 +18,7 @@ public class PaymentService {
   private final PaymentProperties paymentProperties;
   private final DemoPaymentGateway demoPaymentGateway;
   private final RazorpayPaymentGateway razorpayPaymentGateway;
+  private final PaytmPaymentGateway paytmPaymentGateway;
   private final PaymentTransactionRepository paymentTransactionRepository;
   private final CustomerOrderRepository customerOrderRepository;
   private final RealtimeEventService realtimeEventService;
@@ -27,6 +28,7 @@ public class PaymentService {
     PaymentProperties paymentProperties,
     DemoPaymentGateway demoPaymentGateway,
     RazorpayPaymentGateway razorpayPaymentGateway,
+    PaytmPaymentGateway paytmPaymentGateway,
     PaymentTransactionRepository paymentTransactionRepository,
     CustomerOrderRepository customerOrderRepository,
     RealtimeEventService realtimeEventService,
@@ -35,6 +37,7 @@ public class PaymentService {
     this.paymentProperties = paymentProperties;
     this.demoPaymentGateway = demoPaymentGateway;
     this.razorpayPaymentGateway = razorpayPaymentGateway;
+    this.paytmPaymentGateway = paytmPaymentGateway;
     this.paymentTransactionRepository = paymentTransactionRepository;
     this.customerOrderRepository = customerOrderRepository;
     this.realtimeEventService = realtimeEventService;
@@ -43,9 +46,11 @@ public class PaymentService {
 
   @Transactional
   public PaymentSession createPayment(CustomerOrder order) {
-    PaymentSession session = "razorpay".equalsIgnoreCase(paymentProperties.getGateway())
-      ? razorpayPaymentGateway.createPayment(order)
-      : demoPaymentGateway.createPayment(order);
+    PaymentSession session = switch (paymentProperties.getGateway().toLowerCase()) {
+      case "razorpay" -> razorpayPaymentGateway.createPayment(order);
+      case "paytm" -> paytmPaymentGateway.createPayment(order);
+      default -> demoPaymentGateway.createPayment(order);
+    };
 
     PaymentTransaction transaction = new PaymentTransaction();
     transaction.setOrder(order);

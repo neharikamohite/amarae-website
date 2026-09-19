@@ -1160,9 +1160,11 @@ window.addEventListener("load", () => {
         appliedCoupon = null;
         await loadCart();
 
-        if (order.paymentProvider === "razorpay" && order.paymentUrl) {
+        if ((order.paymentProvider === "razorpay" || order.paymentProvider === "paytm") && order.paymentUrl) {
           // Real payment gateway is live — send the shopper straight to
-          // secure checkout, same as a normal store.
+          // secure checkout, same as a normal store. Paytm's redirect URL
+          // is on our own server (an auto-submitting HTML page), not
+          // Paytm's site directly — see PaytmPaymentGateway for why.
           showCheckoutNote(`Order #${order.id} is awaiting payment. Your cart will be kept until payment is verified.`);
           window.location.assign(order.paymentUrl);
           return;

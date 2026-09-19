@@ -8,6 +8,7 @@ public class PaymentProperties {
   private String currency = "INR";
   private String successUrl;
   private Razorpay razorpay = new Razorpay();
+  private Paytm paytm = new Paytm();
 
   public String getGateway() {
     return gateway;
@@ -41,6 +42,14 @@ public class PaymentProperties {
     this.razorpay = razorpay;
   }
 
+  public Paytm getPaytm() {
+    return paytm;
+  }
+
+  public void setPaytm(Paytm paytm) {
+    this.paytm = paytm;
+  }
+
   public static class Razorpay {
     private String keyId;
     private String keySecret;
@@ -59,6 +68,49 @@ public class PaymentProperties {
 
     public void setKeySecret(String keySecret) {
       this.keySecret = keySecret;
+    }
+  }
+
+  public static class Paytm {
+    private String merchantId;
+    private String merchantKey;
+    private String website = "WEBSTAGING";
+    // "test" hits Paytm's staging environment (securegw-stage...), "live"
+    // hits production (secure...) — this is a separate switch from
+    // aether.payment.gateway so a real Paytm merchant ID never
+    // accidentally goes live before you're ready to.
+    private String environment = "test";
+
+    public String getMerchantId() {
+      return merchantId;
+    }
+
+    public void setMerchantId(String merchantId) {
+      this.merchantId = merchantId;
+    }
+
+    public String getMerchantKey() {
+      return merchantKey;
+    }
+
+    public void setMerchantKey(String merchantKey) {
+      this.merchantKey = merchantKey;
+    }
+
+    public String getWebsite() {
+      return website;
+    }
+
+    public void setWebsite(String website) {
+      this.website = website;
+    }
+
+    public String getEnvironment() {
+      return environment;
+    }
+
+    public void setEnvironment(String environment) {
+      this.environment = environment;
     }
   }
 }
