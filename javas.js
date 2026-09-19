@@ -1131,16 +1131,6 @@ window.addEventListener("load", () => {
 
   function attachCheckout() {
     document.querySelector(".checkout-btn")?.addEventListener("click", async () => {
-      // Deliberately requiring an account before checkout, unlike guest
-      // checkout on most large stores — every order stays tied to a real
-      // account this way, which matters more at this stage than the extra
-      // step costs in drop-off.
-      if (!localStorage.getItem("amaraeAuthToken")) {
-        showCheckoutNote("Please sign in or create an account to check out.");
-        window.location.href = "account.html?next=checkout";
-        return;
-      }
-
       const payload = {
         sessionId,
         customerName: document.getElementById("customerName")?.value.trim(),
