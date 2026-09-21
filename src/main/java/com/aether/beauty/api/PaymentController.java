@@ -59,14 +59,16 @@ public class PaymentController {
   }
 
   // Step 2 of the Paytm flow — the customer's browser lands here after we
-  // initiate the transaction server-side; this page auto-submits them
-  // into Paytm's own hosted checkout using the token from that call.
+  // initiate the transaction server-side; this page loads Paytm's JS
+  // Checkout script and opens the payment form directly, using the token
+  // from that call.
   @GetMapping(value = "/paytm/redirect", produces = MediaType.TEXT_HTML_VALUE)
   public ResponseEntity<String> paytmRedirect(
     @RequestParam String orderId,
-    @RequestParam String txnToken
+    @RequestParam String txnToken,
+    @RequestParam String amount
   ) {
-    return ResponseEntity.ok(paytmPaymentGateway.buildRedirectHtml(orderId, txnToken));
+    return ResponseEntity.ok(paytmPaymentGateway.buildRedirectHtml(orderId, txnToken, amount));
   }
 
   // Step 3 — Paytm posts the result back here once the customer finishes
