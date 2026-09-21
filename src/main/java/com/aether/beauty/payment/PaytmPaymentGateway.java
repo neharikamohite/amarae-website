@@ -75,15 +75,18 @@ public class PaytmPaymentGateway {
       requestRoot.set("body", body);
       requestRoot.putObject("head").put("signature", signature);
 
-      // Confirmed against Paytm's own current documentation — these are
-      // the actual transaction-API hosts, distinct from the
-      // paytmpayments.com dashboard domain (dashboard.paytmpayments.com)
-      // used for logging in and managing your account. Mixing those two
-      // up is exactly what caused every payment attempt to fail with an
-      // unresolvable-address error.
+      // Confirmed against Paytm's actual, current official documentation
+      // (matching the exact curl examples they publish, not just prose
+      // descriptions) — securestage.paytmpayments.com for staging,
+      // secure.paytmpayments.com for production. Paytm has an older,
+      // separate "paytm.in" domain family documented elsewhere that looks
+      // equally plausible but is a different, legacy system — that's what
+      // this code used briefly before, which connected successfully but
+      // was rejected with "System Error" since it wasn't the same system
+      // this merchant account (onboarded via paytmpayments.com) lives on.
       String baseUrl = "live".equalsIgnoreCase(config.getEnvironment())
-        ? "https://securegw.paytm.in"
-        : "https://securegw-stage.paytm.in";
+        ? "https://secure.paytmpayments.com"
+        : "https://securestage.paytmpayments.com";
       String initiateUrl = baseUrl
         + "/theia/api/v1/initiateTransaction?mid="
         + URLEncoder.encode(mid, StandardCharsets.UTF_8)
@@ -125,8 +128,8 @@ public class PaytmPaymentGateway {
   public String buildRedirectHtml(String orderId, String txnToken) {
     PaymentProperties.Paytm config = paymentProperties.getPaytm();
     String baseUrl = "live".equalsIgnoreCase(config.getEnvironment())
-      ? "https://securegw.paytm.in"
-      : "https://securegw-stage.paytm.in";
+      ? "https://secure.paytmpayments.com"
+      : "https://securestage.paytmpayments.com";
     String showPaymentPageUrl = baseUrl + "/theia/api/v1/showPaymentPage";
     return "<!doctype html><html><head><title>Redirecting to Paytm…</title></head><body>"
       + "<p>Redirecting to Paytm, please wait…</p>"
