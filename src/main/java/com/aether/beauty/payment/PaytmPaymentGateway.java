@@ -75,9 +75,15 @@ public class PaytmPaymentGateway {
       requestRoot.set("body", body);
       requestRoot.putObject("head").put("signature", signature);
 
+      // Confirmed against Paytm's own current documentation — these are
+      // the actual transaction-API hosts, distinct from the
+      // paytmpayments.com dashboard domain (dashboard.paytmpayments.com)
+      // used for logging in and managing your account. Mixing those two
+      // up is exactly what caused every payment attempt to fail with an
+      // unresolvable-address error.
       String baseUrl = "live".equalsIgnoreCase(config.getEnvironment())
-        ? "https://secure.paytmpayments.com"
-        : "https://securegw-stage.paytmpayments.com";
+        ? "https://securegw.paytm.in"
+        : "https://securegw-stage.paytm.in";
       String initiateUrl = baseUrl
         + "/theia/api/v1/initiateTransaction?mid="
         + URLEncoder.encode(mid, StandardCharsets.UTF_8)
@@ -119,8 +125,8 @@ public class PaytmPaymentGateway {
   public String buildRedirectHtml(String orderId, String txnToken) {
     PaymentProperties.Paytm config = paymentProperties.getPaytm();
     String baseUrl = "live".equalsIgnoreCase(config.getEnvironment())
-      ? "https://secure.paytmpayments.com"
-      : "https://securegw-stage.paytmpayments.com";
+      ? "https://securegw.paytm.in"
+      : "https://securegw-stage.paytm.in";
     String showPaymentPageUrl = baseUrl + "/theia/api/v1/showPaymentPage";
     return "<!doctype html><html><head><title>Redirecting to Paytm…</title></head><body>"
       + "<p>Redirecting to Paytm, please wait…</p>"
