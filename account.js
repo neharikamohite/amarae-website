@@ -7,7 +7,6 @@ window.addEventListener("load", () => {
   // Where UPI payments actually land — keep this in sync with the same
   // constant in javas.js if it ever changes.
   const upiPayeeId = "neharikamohite@okhdfcbank";
-  const upiPayeeName = "Neharika Mohite";
 
   init();
 
@@ -17,6 +16,7 @@ window.addEventListener("load", () => {
     setupSignupForm();
     setupForgotPasswordForm();
     setupResetPasswordForm();
+    setupTrackOrderForm();
     setupAddressForm();
     setupLogout();
     initOrderDetailModal();
@@ -103,7 +103,13 @@ window.addEventListener("load", () => {
   }
 
   function showAuthForm(name) {
-    const forms = { login: "loginForm", signup: "signupForm", forgot: "forgotPasswordForm", reset: "resetPasswordForm" };
+    const forms = {
+      login: "loginForm",
+      signup: "signupForm",
+      forgot: "forgotPasswordForm",
+      reset: "resetPasswordForm",
+      track: "trackOrderForm",
+    };
     Object.entries(forms).forEach(([key, id]) => {
       const form = document.getElementById(id);
       if (form) form.hidden = key !== name;
@@ -208,6 +214,32 @@ window.addEventListener("load", () => {
         window.history.replaceState({}, "", "account.html");
         document.getElementById("accountHeading").textContent = "My Account";
         showAuthForm("login");
+      } catch (error) {
+        note.textContent = error.message;
+        note.classList.add("error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  }
+
+  function setupTrackOrderForm() {
+    const form = document.getElementById("trackOrderForm");
+    const note = document.getElementById("trackOrderNote");
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      note.textContent = "";
+      note.classList.remove("error");
+      const submitBtn = form.querySelector("button[type=submit]");
+      submitBtn.disabled = true;
+      try {
+        const orderId = document.getElementById("trackOrderId").value.trim();
+        const email = document.getElementById("trackOrderEmail").value.trim();
+        const order = await api(`/api/orders/track?orderId=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}`);
+        // Reuses the exact same order-detail modal signed-in shoppers get
+        // from their order history — same QR/payment resume flow, same
+        // status view — just reached through a different door.
+        showOrderDetailModal(order);
       } catch (error) {
         note.textContent = error.message;
         note.classList.add("error");
@@ -393,23 +425,6 @@ window.addEventListener("load", () => {
     `;
   }
 
-  function buildUpiPaymentUrl(order) {
-    // Same encoding rules as javas.js's version — only spaces become
-    // %20, "@" stays bare, since that's what UPI apps actually expect.
-    const encodeUpiValue = (value) => String(value).replace(/ /g, "%20");
-    const params = [
-      ["pa", upiPayeeId],
-      ["pn", upiPayeeName],
-      ["tr", `AMARAE${order.id}${Date.now()}`],
-      ["am", Number(order.total).toFixed(2)],
-      ["cu", "INR"],
-      ["tn", `AMARAE Order ${order.id}`],
-    ]
-      .map(([key, value]) => `${key}=${encodeUpiValue(value)}`)
-      .join("&");
-    return `upi://pay?${params}`;
-  }
-
   function buildResumeWhatsAppUrl(order) {
     const message = [
       "Hi! I'd like to confirm payment for my AMARAE order.",
@@ -448,7 +463,6 @@ window.addEventListener("load", () => {
     };
 
     if (isPending) {
-      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(buildUpiPaymentUrl(order))}`;
       body.innerHTML = `
         <div class="order-confirmed">
           <h2>Complete your payment</h2>
@@ -456,8 +470,8 @@ window.addEventListener("load", () => {
           <ul class="order-confirmed-items">${items}</ul>
           <div class="order-confirmed-total"><span>Total due</span><strong>${formatMoney(order.total)}</strong></div>
           <div class="order-confirmed-qr">
-            <img src="${qrImageUrl}" alt="Scan to pay ${formatMoney(order.total)} via UPI" width="200" height="200" />
-            <p>Scan with any UPI app (GPay, PhonePe, Paytm...)</p>
+            <img src="assets/upi-payment-qr.jpg" alt="Scan to pay via UPI" width="200" height="200" />
+            <p>Scan with any UPI app (GPay, PhonePe, Paytm...) and enter ${formatMoney(order.total)} manually</p>
             <p class="order-confirmed-upi-id">or pay manually to: <strong>${escapeHtml(upiPayeeId)}</strong></p>
           </div>
           <button type="button" class="primary-btn order-confirmed-paid" id="orderDetailPaid" data-order-id="${order.id}">I've Paid</button>

@@ -123,6 +123,16 @@ public class OrderService {
     return saved;
   }
 
+  // Powers the public "track my order" lookup on account.html — the only
+  // way to see an order without being signed in. Requires the exact order
+  // id AND its matching email together, so this can't be used to browse
+  // or guess at other customers' orders one number at a time.
+  public CustomerOrder findForGuestLookup(Long orderId, String email) {
+    return customerOrderRepository
+      .findByIdAndEmailIgnoreCase(orderId, email)
+      .orElseThrow(() -> new EntityNotFoundException("No order found with that number and email."));
+  }
+
   @Transactional
   public CustomerOrder checkout(CheckoutRequest request, User user) {
     List<CartItem> cartItems = cartService.getCart(request.sessionId());

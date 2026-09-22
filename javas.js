@@ -14,13 +14,6 @@ window.addEventListener("load", () => {
   // Where UPI payments actually land — update this if the business
   // account/UPI ID ever changes.
   const upiPayeeId = "neharikamohite@okhdfcbank";
-  // Set to the real, verified name on this UPI account — the "pn" field
-  // is only ever a hint, but some UPI apps cross-check it against the
-  // bank's actual registered name for that ID and can reject or flag the
-  // request if they don't match. Since this VPA is a personal account
-  // (not a registered business one), it has to say the real name here,
-  // not a business name.
-  const upiPayeeName = "Neharika Mohite";
 
   const fallbackProducts = [
     perfume(101, "Crown Voyage", "fresh", "Bergamot, green apple, lime, and blackcurrant open into a bold, boundless trail. Amaraè's signature travel-ready scent.", 1499, "assets/crown-voyage.jpg", 40, 100),
@@ -1209,47 +1202,10 @@ window.addEventListener("load", () => {
     return `https://wa.me/919579222532?text=${encodeURIComponent(message)}`;
   }
 
-  function buildUpiPaymentUrl(order) {
-    // Only spaces get encoded (to %20) — everything else, including the
-    // "@" in the UPI ID, is left exactly as-is. The previous version used
-    // encodeURIComponent on every field, which also encodes "@" into
-    // "%40" — turning a real UPI ID like "name@bank" into something no
-    // UPI app recognizes as a valid payee, which is almost certainly why
-    // every app fell back to its account setup flow instead of showing a
-    // normal payment screen. Every real UPI deep link keeps "@" bare.
-    const encodeUpiValue = (value) => String(value).replace(/ /g, "%20");
-    const params = [
-      ["pa", upiPayeeId],
-      ["pn", upiPayeeName],
-      // "tr" (transaction reference) — a unique ID for this specific
-      // payment attempt. Optional in the UPI spec, but Google Pay in
-      // particular is known to be stricter about wanting one on QR-code
-      // scans than other apps (PhonePe scanning the same link worked
-      // fine without it) — worth including since it's a real, standard
-      // UPI field, not a workaround.
-      ["tr", `AMARAE${order.id}${Date.now()}`],
-      ["am", Number(order.total).toFixed(2)],
-      ["cu", "INR"],
-      ["tn", `AMARAE Order ${order.id}`],
-    ]
-      .map(([key, value]) => `${key}=${encodeUpiValue(value)}`)
-      .join("&");
-    return `upi://pay?${params}`;
-  }
-
   function showOrderConfirmedModal(order, payload) {
     const modal = document.getElementById("orderConfirmedModal");
     const body = document.getElementById("orderConfirmedBody");
     if (!modal || !body) return;
-
-    const upiUrl = buildUpiPaymentUrl(order);
-    // Rendered via a well-established third-party QR image service rather
-    // than a bundled library — the QR only ever encodes the UPI payment
-    // request itself (amount, order note, and this business's own public
-    // UPI ID), the same information anyone scanning a printed QR code
-    // would see anyway. The UPI ID is also shown as plain text below so
-    // payment still works even if this image fails to load.
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiUrl)}`;
 
     const items = order.lines
       .map((line) => `<li>${line.quantity} &times; ${escapeHtml(line.productName)} (${line.sizeMl}ml)</li>`)
@@ -1267,8 +1223,8 @@ window.addEventListener("load", () => {
         </div>
 
         <div class="order-confirmed-qr">
-          <img src="${qrImageUrl}" alt="Scan to pay ${formatMoney(order.total)} via UPI" width="200" height="200" />
-          <p>Scan with any UPI app (GPay, PhonePe, Paytm...)</p>
+          <img src="assets/upi-payment-qr.jpg" alt="Scan to pay via UPI" width="200" height="200" />
+          <p>Scan with any UPI app (GPay, PhonePe, Paytm...) and enter ${formatMoney(order.total)} manually</p>
           <p class="order-confirmed-upi-id">or pay manually to: <strong>${escapeHtml(upiPayeeId)}</strong></p>
         </div>
 

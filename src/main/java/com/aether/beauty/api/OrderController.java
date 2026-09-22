@@ -6,12 +6,14 @@ import com.aether.beauty.auth.AuthService;
 import com.aether.beauty.auth.User;
 import com.aether.beauty.order.OrderService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,11 +29,16 @@ public class OrderController {
     this.apiMapper = apiMapper;
   }
 
-  // Note: there is deliberately no public "list recent orders" endpoint
-  // here — order data (totals, payment references, tracking info) is only
-  // ever returned to the customer who placed the order (via
-  // /api/account/orders, signed in) or to the admin dashboard
-  // (/api/admin/orders, admin-authenticated).
+  // Order data (totals, payment references, tracking info) is only ever
+  // returned to: the customer who placed it (via /api/account/orders,
+  // signed in), the admin dashboard (admin-authenticated), or here — a
+  // narrow, deliberate exception for guests who never created an account,
+  // gated by requiring the exact order id AND its matching email together.
+  @GetMapping("/track")
+  public OrderDto track(@RequestParam Long orderId, @RequestParam String email) {
+    return apiMapper.toOrderDto(orderService.findForGuestLookup(orderId, email));
+  }
+
   @PostMapping("/checkout")
   public OrderDto checkout(
     @RequestHeader(value = "Authorization", required = false) String authorization,

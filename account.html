@@ -52,6 +52,7 @@
           <p class="auth-note" id="loginNote"></p>
           <p class="auth-switch"><button type="button" class="auth-switch-link" data-tab="forgot">Forgot password?</button></p>
           <p class="auth-switch">Don't have an account? <button type="button" class="auth-switch-link" data-tab="signup">Create one</button></p>
+          <p class="auth-switch">Checked out as a guest? <button type="button" class="auth-switch-link" data-tab="track">Track your order</button></p>
         </form>
 
         <form class="auth-form" id="forgotPasswordForm" hidden>
@@ -74,6 +75,22 @@
           </label>
           <button type="submit" class="primary-btn">Set new password</button>
           <p class="auth-note" id="resetNote"></p>
+        </form>
+
+        <form class="auth-form" id="trackOrderForm" hidden>
+          <h2 class="auth-form-title">Track your order</h2>
+          <p class="auth-form-hint">No account needed — just the order number and email you used at checkout.</p>
+          <label>
+            Order number
+            <input id="trackOrderId" type="number" placeholder="e.g. 42" required />
+          </label>
+          <label>
+            Email address
+            <input id="trackOrderEmail" type="email" placeholder="you@example.com" required />
+          </label>
+          <button type="submit" class="primary-btn">Find my order</button>
+          <p class="auth-note" id="trackOrderNote"></p>
+          <p class="auth-switch"><button type="button" class="auth-switch-link" data-tab="login">Back to sign in</button></p>
         </form>
 
         <form class="auth-form" id="signupForm" hidden>
